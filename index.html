@@ -3,65 +3,259 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Search Page</title>
+  <title>Player Stats Lookup</title>
   <style>
-    body {
+    html, body {
+      height: 100%;
       margin: 0;
       padding: 0;
       font-family: sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
+    }
+
+    :root {
+      --bg: #111;
+      --text: #eee;
+      --input-bg: #222;
+      --border: #555;
+    }
+
+    .light {
+      --bg: #eee;
+      --text: #111;
+      --input-bg: #fff;
+      --border: #aaa;
+    }
+
+    body {
       display: flex;
-      flex-direction: column;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      background: #121212;
-      color: #f0f0f0;
     }
+
+    .container {
+      text-align: center;
+      width: 90%;
+      max-width: 300px;
+    }
+
     h1 {
-      margin-bottom: 20px;
-      text-align: center;
+      font-size: 20px;
+      margin-bottom: 10px;
     }
-    input[type="text"] {
-      padding: 10px;
-      font-size: 16px;
-      width: 250px;
-      border: none;
-      border-radius: 5px;
+
+    .info {
+      font-size: 12px;
+      margin-bottom: 15px;
     }
+
+    .search-container {
+      position: relative;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 6px;
+      margin: 5px 0;
+      background: var(--input-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      appearance: none;
+    }
+
+    .suggestions {
+      position: absolute;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      width: 100%;
+      max-height: 150px;
+      overflow-y: auto;
+      z-index: 10;
+      text-align: left;
+    }
+
+    .suggestion {
+      padding: 5px 8px;
+      cursor: pointer;
+    }
+
+    .suggestion:hover {
+      background: var(--border);
+    }
+
     .result {
-      margin-top: 20px;
-      text-align: center;
+      margin-top: 15px;
+      font-size: 14px;
+    }
+
+    .toggle-btn {
+      margin: 10px 0;
+      cursor: pointer;
+      padding: 5px 10px;
+      border: 1px solid var(--border);
+      background: var(--input-bg);
+      border-radius: 4px;
     }
   </style>
 </head>
 <body>
-  <h1>Enter the name you want to search</h1>
-  <input type="text" id="searchBox" placeholder="Type a name..." onkeyup="searchName(event)" />
-  <div class="result" id="result"></div>
+
+  <div class="container">
+    <div class="info">
+      <div>Changes (omg sub updating something!)</div>
+      <div>- Added light/dark mode for 600 lbs peeps</div>
+      <div>- Added server filter (Hypixel / Fakepixel)</div>
+      <div>- Added more names and easter eggs!</div>
+    </div>
+
+    <h1>Player Stats Lookup</h1>
+
+    <button class="toggle-btn" onclick="toggleMode()">Toggle Dark/Light Mode</button>
+
+    <div class="search-container">
+      <input type="text" id="searchBox" placeholder="Type username..." oninput="updateSuggestions()">
+      <select id="serverFilter" onchange="updateSuggestions()">
+        <option value="all">All Servers</option>
+        <option value="hypixel">Hypixel</option>
+        <option value="fakepixel">Fakepixel</option>
+      </select>
+      <div class="suggestions" id="suggestions"></div>
+    </div>
+
+    <div class="result" id="result"></div>
+  </div>
 
   <script>
-    const data = {
-      "technegamerz": { secret: "10.8", clearPB: "N/A" },
-      "nxilys": { secret: "12.6", clearPB: "3:36" },
-      "deefer": { secret: "16.1", clearPB: "2:58" }
-    };
+    const usernames = [
+      "technegamerz", "nxilys", "ryflyy", "zzcyan", "combat_grinder", "djamal55",
+      "ashborn007", "deefercopy", "zzzdeefer", "henry", "andrewisnot", "maryoma",
+      "neverleaks", "dreamcopy", "ntdlegend", "_aru_10_", "crazygaming", "zztempest",
+      "zzohful", "fiskefillet", "lizaridoo", "goku_saiyan", "ashcot", "linus",
+      "eatplastic", "15h", "nashes", "iamrexist", "prince4822", "24_noob", "pisachi",
+      "pineapple7396", "5b9b6b", "mintuboy22", "litthatdab", "ii8we_", "slayer_god",
+      "aquib77767", "real_king4life", "i_am_a_monkey", "spyderyt_", "manas1321",
+      "feelong", "lipa", "fullzero3479", "ninjahere09", "vkgamerz3371", "samar_963215",
+      "ghost_pick", "youtube_panda", "anshu08", "yousufexists", "luckygamer316", "u77id",
+      "ahmedtheguy6100", "woow112", "modshadow25", "bigbang569", "diana_mommy",
+      "susuusus", "thor_asguard2860", "afredmanop", "random_melon", "unreal",
+      "bobsteve21", "mike", "heet_noob", "galavan", "asp_yt", "arshit_warrior69", "justasadkitty", "not_natsuka",
+      "m3l_", "theholychickn", "teamxankur", "positron835", "clutchgod07",
+      "yarns", "tiltedhoney", "sirdeadly", "darknessisepic", "sicokelab", "arush23gang",
+      "kdarko", "doncame", "fickleflyer", "burzaco", "ruxator", "manojplayz0727", "lakshya49",
+      "animevibe", "shivansh2159", "akkug", "mommysnatcher69", "gv_kakarot", "baldkebap",
+      "behappyinlife", "baby_ghast", "divanshugod", "autumace1234", "kribhav7783", "armanpandit",
+      "hayacyaa", "pea", "asiml0l", "the_banned_one", "iamspongbob3", "kidkidkid_", "juju_non_broke",
+      "scamxd", "ywhitebw", "xbits", "ogcrits", "zzzsnowyy", "daredevil8629i", "sibnath", "goatmg",
+      "affanismail", "subham77", "iamnotaspectmc", "iamnotdevilmc", "siddhu_piddhu", "bhaiya_ji",
+      "axolot987", "sweatcoop", "aruhiyt", "vivek8427", "jatinchd", "hinata_106", "ankit130",
+      "ankit1300", "laptop10", "mansoob201", "activisyxn", "ati123", "wasnothere_", "zombotbot2123",
+      "dreamsplayz123", "lavabislery", "guestrmx", "0dinokiy", "ekewre", "cbo", "andrew"
+    ];
 
-    function searchName(event) {
-      if (event.key === "Enter") {
-        const value = event.target.value.trim().toLowerCase();
-        const info = data[value];
-        const resultDiv = document.getElementById("result");
+    const secrets = [
+      "10.8 (this is a joke)", "12.6", "17.2", "18.3", "12.5", "14.8", "clear brrr", "16.1", "19.3",
+      "17.8", "15.7", "13.2", "21.3", "14.9", "12.1", "12.3", "14.5", "19.3", "18.9",
+      "16.3", "13.1", "8.9", "idk", "20.1", "16.5", "18.2", "17.1", "17.4", "10.7",
+      "13.2", "13.4", "11.2", "13.2", "11.6", "12.4", "12.8", "10.1", "10.1", "real",
+      "10.3", "?", "?", "19.2", "not 14 yet", "13.6", "12.6", "12.5", "11.2", "12",
+      "10.2", "9.6", "12.1", "10.9", "10.4", "11.2", "12.2", "11.9", "N/A", "9.2",
+      "9.3", "10.6", "10.4", "MELON!!!!!!!!!!!!!!!", "17.7", "18.1", "16.9", "11.3",
+      "10.4", "13.9 (i wonder how)", "13.9 (i wonder how)", "10.6", "10.2",
+      "9.1", "17.4", "10.3", "9.4", "10.7", "16.9", "18.6", "20.2", "16.7 (cheated)",
+      "10.5", "18.1", "10.2", "10.3", "9.5", "11.3", "13.2", "11.6", "10.8", "12.1",
+      "10.3", "10.6", "11.5", "9.4", "11.7", "10.6", "9.1", "9.9", "9.6", "9.7", "10.2",
+      "16.3", "20.1", "8.7", "11.4", "9.8", "8.9", "11.3", "10.1", "10.2", "?", "?",
+      "19.7", "10.9", "10.2", "10.5", "10.7", "8.2", "11.3", "9.9", "8.7", "9.8",
+      "10.7", "12.1", "11.4", "10.1", "11.9", "9.8", "10.1", "11.3", "10.1", "11.2",
+      "9.9", "9.6", "10.7", "9.8", "10.4", "10.8 (i wonder how lol)", "10.1", "9.9", "10.2",
+      "9.9", "18.2"
+    ];
 
-        if (info) {
-          resultDiv.innerHTML = `
-            <p>Secret: ${info.secret}</p>
-            <p>Clear PB: ${info.clearPB}</p>
-          `;
-        } else {
-          resultDiv.innerHTML = `<p>Name not found.</p>`;
+    const clearPBs = [
+      "N/A", "3:39", "3:49", "2:44", "N/A", "N/A", "goes brr", "2:58", "3:07", "2:58",
+      "2:59", "3:58", "2:47", "N/A", "N/A", "N/A", "N/A", "3:42", "3:21", "3:47",
+      "N/A", "4:11", "idk", "4:02", "3:32", "3:21", "4:16", "4:32", "N/A", "N/A",
+      "11:58 (tested by deefer way back in October, 2024)", "N/A", "N/A", "3:58",
+      "N/A", "N/A", "N/A", "N/A", "real", "5:48", "?", "?", "4:38", "not 14 yet",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "?", "N/A", "4:58", "N/A", "N/A", "4:07",
+      "4:15", "N/A", "N/A", "N/A", "7:29", "5:47", "N/A", "MELON MELON MELON MELON MELON!",
+      "3:42", "4:20", "4:32 (fat)", "N/A", "N/A", "haiz", "haiz", "5:11", "N/A", "7:21",
+      "4:49", "N/A", "N/A", "5:36", "5:01", "3:49", "3:21", "3:47 (cheated)", "N/A",
+      "3:16", "N/A", "N/A", "N/A", "4:52", "4:03", "5:11", "N/A", "N/A", "N/A", "N/A",
+      "4:46", "N/A", "4:32", "5:26", "8:21", "N/A", "N/A", "N/A", "N/A", "4:47", "3:36",
+      "N/A", "4:32", "N/A", "N/A", "4:57", "N/A", "N/A", "?", "N/A", "3:41", "N/A", "N/A",
+      "N/A", "N/A", "beggar shoo shoo", "N/A", "N/A", "N/A", "5:37", "5:01", "4:48",
+      "N/A", "N/A", "4:35", "N/A", "5m", "5m", "N/A", "N/A", 'N/A', "N/A", "N/A", "N/A",
+      "5:20", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "3:45"
+    ];
+
+    const servers = [
+      "fakepixel", "fakepixel", "hypixel", "hypixel", "fakepixel", "fakepixel", "fakepixel",
+      "fakepixel", "hypixel", "hypixel", "fakepixel", "fakepixel", "hypixel", "fakepixel",
+      "fakepixel", "fakepixel", "fakepixel", "hypixel", "hypixel", "hypixel",
+      "fakepixel", "fakepixel", "fakepixel", "hypixel", "hypixel", "hypixel", "hypixel",
+      "hypixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel",
+      "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel",
+      "fakepixel", "fakepixel", "fakepixel", "hypixel", "hypixel", "fakepixel",
+      "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel",
+      "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel",
+      "fakepixel", "fakepixel", "fakepixe", "fakepixel", "fakepixel", "hypixel",
+      "hypixel", "hypixel", "hypixel", "fakepixel", "fakepixel", "fakepixel",
+      "fakepixel", "fakepixel", "fakepixel", "fakepixel", "hypixel", "fakepixel",
+      "fakepixel", "fakepixel", "hypixel", "hypixel", "hypixel", "hypixel", "fakepixel",
+      "hypixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel", "hypixel", "fakepixel",
+      "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel",
+      "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel", "hypixel",
+      "hypixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel",
+      "fakepixel", "fakepixel", "fakepixel", "hypixel", "fakepixel", "fakepixel", "fakepixel", 
+      "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel",
+      "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel", "hypixel",
+      "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel",
+      "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel", "hypixel"
+    ];
+
+    function updateSuggestions() {
+      const input = document.getElementById("searchBox").value.toLowerCase();
+      const selectedServer = document.getElementById("serverFilter").value;
+      const suggestionsDiv = document.getElementById("suggestions");
+      suggestionsDiv.innerHTML = "";
+
+      if (input === "") return;
+
+      usernames.forEach((name, i) => {
+        if (
+          name.toLowerCase().includes(input) &&
+          (selectedServer === "all" || servers[i] === selectedServer)
+        ) {
+          const div = document.createElement("div");
+          div.textContent = `${name} [${servers[i]}]`;
+          div.className = "suggestion";
+          div.onclick = () => {
+            document.getElementById("searchBox").value = name;
+            suggestionsDiv.innerHTML = "";
+            displayResult(i);
+          };
+          suggestionsDiv.appendChild(div);
         }
-      }
+      });
+    }
+
+    function displayResult(index) {
+      document.getElementById("result").innerHTML = `
+        <div><strong>${usernames[index]}</strong> [${servers[index]}]</div>
+        <div>Secrets: ${secrets[index]}</div>
+        <div>Clear PB: ${clearPBs[index]}</div>
+      `;
+    }
+
+    function toggleMode() {
+      document.body.classList.toggle("light");
     }
   </script>
+
 </body>
 </html>
