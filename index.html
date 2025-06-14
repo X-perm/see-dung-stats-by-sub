@@ -227,26 +227,35 @@
     const secretFakepixel = computeRanks(usernames, secretValues, servers, "fakepixel", true);
     const clearFakepixel = computeRanks(usernames, clearSeconds, servers, "fakepixel", false);
 
-    function updateSuggestions() {
-      const input = document.getElementById("searchBox").value.toLowerCase();
-      const server = document.getElementById("serverFilter").value;
-      const suggestionsDiv = document.getElementById("suggestions");
-      suggestionsDiv.innerHTML = "";
-      if (!input) return;
-      usernames.forEach((name, i) => {
-        if (name.toLowerCase().includes(input) && (server === "all" || servers[i] === server)) {
-          const div = document.createElement("div");
-          div.className = "suggestion";
-          div.textContent = `${name} [${servers[i]}]`;
-          div.onclick = () => {
-            document.getElementById("searchBox").value = name;
-            suggestionsDiv.innerHTML = "";
-            displayResult(i);
-          };
-          suggestionsDiv.appendChild(div);
-        }
-      });
+function updateSuggestions() {
+  const input = document.getElementById("searchBox").value.toLowerCase();
+  const server = document.getElementById("serverFilter").value;
+  const suggestionsDiv = document.getElementById("suggestions");
+  suggestionsDiv.innerHTML = "";
+
+  if (!input.trim()) {
+    suggestionsDiv.style.display = "none";  // Hides suggestion box if empty
+    return;
+  }
+
+  usernames.forEach((name, i) => {
+    if (name.toLowerCase().includes(input) && (server === "all" || servers[i] === server)) {
+      const div = document.createElement("div");
+      div.className = "suggestion";
+      div.textContent = `${name} [${servers[i]}]`;
+      div.onclick = () => {
+        document.getElementById("searchBox").value = name;
+        suggestionsDiv.innerHTML = "";
+        suggestionsDiv.style.display = "none"; // Also hide box when a suggestion is clicked
+        displayResult(i);
+      };
+      suggestionsDiv.appendChild(div);
     }
+  });
+
+  // Show or hide suggestions box depending on if we have suggestions
+  suggestionsDiv.style.display = suggestionsDiv.children.length > 0 ? "block" : "none";
+}
 
     function handleKey(event) {
       if (event.key === "Enter") {
