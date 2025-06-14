@@ -25,30 +25,16 @@
       width: 100%;
       text-align: center;
     }
-    input, select {
+    input, select, button {
       width: 100%;
       padding: 6px;
       margin: 5px 0;
-      background: #222;
-      color: #eee;
       border: 1px solid #555;
       border-radius: 4px;
-    }
-    body.light input, body.light select {
-      background: #fff;
-      color: #111;
-      border-color: #aaa;
-    }
-    button {
-      margin: 10px 0;
-      padding: 6px 12px;
-      border: 1px solid #555;
       background: #222;
       color: #eee;
-      border-radius: 4px;
-      cursor: pointer;
     }
-    body.light button {
+    body.light input, body.light select, body.light button {
       background: #fff;
       color: #111;
       border-color: #aaa;
@@ -166,19 +152,19 @@
     const clears = ["N/A", "3:39", "3:49", "2:44", "N/A", "N/A", "goes brr", "2:58", "3:07", "2:58",
       "2:59", "3:58", "2:47", "N/A", "N/A", "N/A", "N/A", "3:42", "3:21", "3:47",
       "N/A", "4:11", "idk", "4:02", "3:32", "3:21", "4:16", "4:32", "N/A", "N/A",
-      "11:58 (tested by deefer way back in October, 2024)", "N/A", "N/A", "3:58",
+      "11:58", "N/A", "N/A", "3:58",
       "N/A", "N/A", "N/A", "N/A", "real", "5:48", "?", "?", "4:38", "not 14 yet",
       "N/A", "N/A", "N/A", "N/A", "N/A", "?", "N/A", "4:58", "N/A", "N/A", "4:07",
       "4:15", "N/A", "N/A", "N/A", "7:29", "5:47", "N/A", "MELON MELON MELON MELON MELON!",
-      "3:42", "4:20", "4:32 (fat)", "N/A", "N/A", "haiz", "haiz", "5:11", "N/A", "7:21",
-      "4:49", "N/A", "N/A", "5:36", "5:01", "3:49", "3:21", "3:47 (cheated)", "N/A",
+      "3:42", "4:20", "4:32", "N/A", "N/A", "haiz", "haiz", "5:11", "N/A", "7:21",
+      "4:49", "N/A", "N/A", "5:36", "5:01", "3:49", "3:21", "3:47", "N/A",
       "3:16", "N/A", "N/A", "N/A", "4:52", "4:03", "5:11", "N/A", "N/A", "N/A", "N/A",
       "4:46", "N/A", "4:32", "5:26", "8:21", "N/A", "N/A", "N/A", "N/A", "4:47", "3:36",
       "N/A", "4:32", "N/A", "N/A", "4:57", "N/A", "N/A", "?", "N/A", "3:41", "N/A", "N/A",
       "N/A", "N/A", "beggar shoo shoo", "N/A", "N/A", "N/A", "5:37", "5:01", "4:48",
-      "N/A", "N/A", "4:35", "N/A", "5m", "5m", "N/A", "N/A", 'N/A', "N/A", "N/A", "N/A",
+      "N/A", "N/A", "4:35", "N/A", "5:01", "5:01", "N/A", "N/A", 'N/A', "N/A", "N/A", "N/A",
       "5:20", "N/A", "N/A", "N/A", "N/A", "N/A", "3:45", "3:52", "4:11", "3:57", "4:21",
-      "5:01", "2:28", "2:33", "2:45", "3:10", "4:39 (cheated)", "4:48", "2:46", "N/A"];
+      "5:01", "2:28", "2:33", "2:45", "3:10", "4:39", "4:48", "2:46", "N/A"];
     const servers = ["fakepixel", "fakepixel", "hypixel", "hypixel", "fakepixel", "fakepixel", "fakepixel",
       "fakepixel", "hypixel", "hypixel", "fakepixel", "fakepixel", "hypixel", "fakepixel",
       "fakepixel", "fakepixel", "fakepixel", "hypixel", "hypixel", "hypixel",
@@ -204,33 +190,42 @@
       "hypixel", "hypixel", "hypixel", "hypixel", "hypixel", "hypixel", "hypixel", "hypixel",
       "hypixel", "hypixel", "hypixel", "fakepixel"];
 
+    function safeSecretValue(v) {
+      const n = Number(v);
+      return !isNaN(n) ? n : -1; // Invalid secrets as -1
+    }
+
     function timeToSeconds(time) {
+      if (typeof time !== "string") return Infinity;
       if (time === "N/A" || time.includes("idk") || time.includes("?")) return Infinity;
       const parts = time.split(":").map(Number);
       return parts[0] * 60 + parts[1];
     }
 
-    function computeRanks(names, values, servs, serverFilter = null) {
-      return names
-        .map((name, i) => ({
-          name,
-          value: values[i],
-          server: servs[i]
-        }))
-        .filter(p => serverFilter === null || p.server === serverFilter)
-        .sort((a, b) => a.value - b.value)
-        .reduce((ranks, p, i) => {
-          ranks[p.name] = i + 1;
-          return ranks;
-        }, {});
+    function computeRanks(names, values, servers, serverFilter, sortDescending) {
+      const data = names
+        .map((name, i) => ({ name, value: values[i], server: servers[i] }))
+        .filter(p => (serverFilter ? p.server === serverFilter : true) && isFinite(p.value) && p.value !== -1);
+
+      data.sort((a, b) =>
+        sortDescending ? b.value - a.value : a.value - b.value
+      );
+
+      return data.reduce((ranks, p, idx) => {
+        ranks[p.name] = idx + 1;
+        return ranks;
+      }, {});
     }
 
-    const secretOverall = computeRanks(usernames, secrets.map(v => -v), servers);
-    const clearOverall = computeRanks(usernames, clears.map(timeToSeconds), servers);
-    const secretHypixel = computeRanks(usernames, secrets.map(v => -v), servers, "hypixel");
-    const clearHypixel = computeRanks(usernames, clears.map(timeToSeconds), servers, "hypixel");
-    const secretFakepixel = computeRanks(usernames, secrets.map(v => -v), servers, "fakepixel");
-    const clearFakepixel = computeRanks(usernames, clears.map(timeToSeconds), servers, "fakepixel");
+    const secretValues = secrets.map(safeSecretValue);
+    const clearSeconds = clears.map(timeToSeconds);
+
+    const secretOverall = computeRanks(usernames, secretValues, servers, null, true);
+    const clearOverall = computeRanks(usernames, clearSeconds, servers, null, false);
+    const secretHypixel = computeRanks(usernames, secretValues, servers, "hypixel", true);
+    const clearHypixel = computeRanks(usernames, clearSeconds, servers, "hypixel", false);
+    const secretFakepixel = computeRanks(usernames, secretValues, servers, "fakepixel", true);
+    const clearFakepixel = computeRanks(usernames, clearSeconds, servers, "fakepixel", false);
 
     function updateSuggestions() {
       const input = document.getElementById("searchBox").value.toLowerCase();
@@ -272,14 +267,14 @@
         <div><strong>${usernames[i]}</strong> [${servers[i]}]</div>
         <div class="stat">Secrets: ${secrets[i]}
           <div class="tooltip">
-            Overall Rank: #${secretOverall[usernames[i]]}
-            <br>${capitalize(servers[i])} Rank: #${servers[i] === "hypixel" ? secretHypixel[usernames[i]] : secretFakepixel[usernames[i]]}
+            Overall Secret Rank: ${secretOverall[usernames[i]] ? "#" + secretOverall[usernames[i]] : "N/A"}
+            <br>${capitalize(servers[i])} Secret Rank: ${servers[i] === "hypixel" ? (secretHypixel[usernames[i]] ? "#" + secretHypixel[usernames[i]] : "N/A") : (secretFakepixel[usernames[i]] ? "#" + secretFakepixel[usernames[i]] : "N/A")}
           </div>
         </div>
         <div class="stat">Clear PB: ${clears[i]}
           <div class="tooltip">
-            Overall Rank: #${clearOverall[usernames[i]]}
-            <br>${capitalize(servers[i])} Rank: #${servers[i] === "hypixel" ? clearHypixel[usernames[i]] : clearFakepixel[usernames[i]]}
+            Overall Clear Rank: ${clearOverall[usernames[i]] ? "#" + clearOverall[usernames[i]] : "N/A"}
+            <br>${capitalize(servers[i])} Clear Rank: ${servers[i] === "hypixel" ? (clearHypixel[usernames[i]] ? "#" + clearHypixel[usernames[i]] : "N/A") : (clearFakepixel[usernames[i]] ? "#" + clearFakepixel[usernames[i]] : "N/A")}
           </div>
         </div>`;
     }
