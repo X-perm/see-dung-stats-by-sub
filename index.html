@@ -1,114 +1,1446 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Player Stats Lookup</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkyBlock Player Stats Lookup</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    :root {
+      --dark-bg: #121212;
+      --dark-card: #1e1e1e;
+      --dark-text: #e0e0e0;
+      --dark-border: #333;
+      --dark-hover: #2a2a2a;
+      --accent: #4a9df8;
+      --accent-dark: #2d7ac9;
+      --success: #4CAF50;
+      --warning: #FF9800;
+      --hypixel: #4a9df8;
+      --fakepixel: #a86bf9;
+      --f7-color: #5cb85c;
+      --m7-color: #d9534f;
+      --theme-primary: #4a9df8;
+      --theme-secondary: #a86bf9;
+    }
+    
     body {
-      font-family: sans-serif;
-      background: #111;
-      color: #eee;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: var(--dark-text);
+      min-height: 100vh;
       padding: 20px;
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
-      transition: background 0.3s, color 0.3s;
+      line-height: 1.6;
+      transition: background 0.3s ease;
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
     }
-    body.light {
-      background: #eee;
-      color: #111;
+    
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
+    
+    .light-mode {
+      --dark-bg: #f0f2f5;
+      --dark-card: #ffffff;
+      --dark-text: #333333;
+      --dark-border: #d1d1d1;
+      --dark-hover: #f0f0f0;
+      background: linear-gradient(135deg, #e0e7ff, #d5e0ff, #e0f0ff);
+    }
+    
     .container {
-      max-width: 300px;
+      max-width: 1100px;
       width: 100%;
-      text-align: center;
+      background: var(--dark-card);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+      padding: 30px;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(100, 100, 255, 0.2);
+      position: relative;
+      z-index: 2;
     }
+    
+    .light-mode .container {
+      background: var(--dark-card);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(200, 200, 255, 0.5);
+    }
+    
+    header {
+      text-align: center;
+      margin-bottom: 25px;
+      position: relative;
+    }
+    
+    .header-controls {
+      position: absolute;
+      top: 0;
+      right: 0;
+      display: flex;
+      gap: 10px;
+    }
+    
+    .theme-toggle {
+      background: var(--dark-card);
+      border: 1px solid var(--dark-border);
+      color: var(--dark-text);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      z-index: 10;
+    }
+    
+    .theme-toggle:hover {
+      background: var(--dark-hover);
+      transform: rotate(15deg);
+    }
+    
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      background: linear-gradient(90deg, var(--theme-primary), var(--theme-secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .subtitle {
+      color: #aaa;
+      font-size: 1.1rem;
+      margin-bottom: 20px;
+    }
+    
+    .light-mode .subtitle {
+      color: #666;
+    }
+    
+    .search-container {
+      position: relative;
+      margin-bottom: 20px;
+    }
+    
+    .search-box {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    
     input, select, button {
       width: 100%;
-      padding: 6px;
-      margin: 5px 0;
-      border: 1px solid #555;
-      border-radius: 4px;
-      background: #222;
-      color: #eee;
-      box-sizing: border-box;
+      padding: 14px 18px;
+      border: 1px solid var(--dark-border);
+      border-radius: 10px;
+      background: var(--dark-card);
+      color: var(--dark-text);
+      font-size: 1rem;
+      transition: all 0.3s;
     }
-    body.light input, body.light select, body.light button {
-      background: #fff;
-      color: #111;
-      border-color: #aaa;
+    
+    .light-mode input, 
+    .light-mode select {
+      background: var(--dark-card);
+      color: #333;
+      border-color: #ccc;
     }
+    
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--theme-primary);
+      box-shadow: 0 0 0 3px rgba(74, 157, 248, 0.2);
+    }
+    
+    button {
+      background: var(--theme-primary);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.2s;
+    }
+    
+    button:hover {
+      background: var(--theme-secondary);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    
     .suggestions {
       display: none;
-      background: #222;
-      border: 1px solid #555;
-      border-radius: 4px;
-      max-height: 150px;
+      background: var(--dark-card);
+      border: 1px solid var(--dark-border);
+      border-radius: 8px;
+      max-height: 200px;
       overflow-y: auto;
       text-align: left;
+      position: absolute;
+      width: 100%;
+      z-index: 10;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     }
-    body.light .suggestions {
-      background: #fff;
-      border-color: #aaa;
+    
+    .light-mode .suggestions {
+      background: white;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      border-color: #d1d1d1;
     }
+    
     .suggestion {
-      padding: 4px 6px;
+      padding: 10px 15px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .suggestion:hover {
+      background: var(--dark-hover);
+    }
+    
+    .light-mode .suggestion:hover {
+      background: #f5f5f5;
+    }
+    
+    .server-tag {
+      background: var(--theme-primary);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .hypixel { 
+      background: var(--hypixel);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+    .fakepixel { 
+      background: var(--fakepixel);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+    
+    .result {
+      margin-top: 25px;
+      background: var(--dark-card);
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid var(--dark-border);
+    }
+    
+    .light-mode .result {
+      background: var(--dark-card);
+      border-color: #e0e0e0;
+    }
+    
+    .player-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid var(--dark-border);
+    }
+    
+    .light-mode .player-header {
+      border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .player-name {
+      font-size: 1.8rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .player-name i {
+      font-size: 1.4rem;
+      color: var(--theme-primary);
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    @media (max-width: 900px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .stat-card {
+      background: var(--dark-card);
+      border-radius: 12px;
+      padding: 20px;
+      position: relative;
+      border: 1px solid var(--dark-border);
+      transition: all 0.3s;
+      overflow: visible;
+      min-height: 280px;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .stat-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--theme-primary);
+    }
+    
+    .light-mode .stat-card {
+      background: var(--dark-card);
+      border-color: #e0e0e0;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      border-color: var(--theme-primary);
+    }
+    
+    .light-mode .stat-card:hover {
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stat-title {
+      font-size: 1rem;
+      color: #aaa;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .light-mode .stat-title {
+      color: #666;
+    }
+    
+    .stat-value {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+      text-align: center;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .stat-ranks {
+      font-size: 0.95rem;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .rank-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px dashed var(--dark-border);
+    }
+    
+    .light-mode .rank-item {
+      border-bottom: 1px dashed #e0e0e0;
+    }
+    
+    .rank-label {
+      color: #aaa;
+    }
+    
+    .light-mode .rank-label {
+      color: #777;
+    }
+    
+    .rank-value {
+      font-weight: 600;
+    }
+    
+    .controls-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px 0;
+      color: #888;
+    }
+    
+    .light-mode .empty-state {
+      color: #999;
+    }
+    
+    .empty-state i {
+      font-size: 3.5rem;
+      margin-bottom: 15px;
+      opacity: 0.5;
+    }
+    
+    .leaderboard-container {
+      display: none;
+      margin-top: 20px;
+    }
+    
+    .leaderboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid var(--dark-border);
+    }
+    
+    .light-mode .leaderboard-header {
+      border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .tab {
+      padding: 12px 20px;
+      border-radius: 8px;
+      background: var(--dark-card);
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+      border: 1px solid var(--dark-border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .light-mode .tab {
+      background: var(--dark-card);
+      border-color: #d1d1d1;
+    }
+    
+    .tab.active {
+      background: var(--theme-primary);
+      border-color: var(--theme-primary);
+    }
+    
+    .leaderboard {
+      max-height: 500px;
+      overflow-y: auto;
+      border-radius: 8px;
+      border: 1px solid var(--dark-border);
+    }
+    
+    .light-mode .leaderboard {
+      border: 1px solid #e0e0e0;
+    }
+    
+    .leaderboard-row {
+      display: grid;
+      grid-template-columns: 60px 1fr 1fr 120px;
+      align-items: center;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--dark-border);
+      gap: 10px;
+    }
+    
+    .leaderboard-row > div {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .light-mode .leaderboard-row {
+      border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .leaderboard-row.header {
+      font-weight: 700;
+      background: rgba(74, 157, 248, 0.1);
+    }
+    
+    .light-mode .leaderboard-row.header {
+      background: rgba(74, 157, 248, 0.05);
+    }
+    
+    .rank-icon {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+      vertical-align: middle;
+    }
+    
+    .rank-cell {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .player-cell {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .back-button {
+      background: transparent;
+      border: none;
+      color: var(--theme-primary);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0;
+      width: auto;
+      font-size: 1.1rem;
+    }
+    
+    .back-button:hover {
+      background: transparent;
+      transform: none;
+      box-shadow: none;
+      text-decoration: underline;
       cursor: pointer;
     }
-    .suggestion:hover {
-      background: #555;
+    
+    .leaderboard-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 20px;
+      align-items: center;
     }
-    body.light .suggestion:hover {
-      background: #ddd;
+    
+    .server-filter-container, .floor-filter-container, .clear-type-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
-    .result {
-      margin-top: 10px;
+    
+    .stat-info {
+      font-size: 0.95rem;
+      color: #aaa;
+      padding: 8px 12px;
+      border-radius: 4px;
+      background: var(--dark-card);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
     }
-    .stat {
+    
+    .light-mode .stat-info {
+      color: #666;
+      background: var(--dark-card);
+    }
+    
+    .tooltip {
       position: relative;
       display: inline-block;
+      cursor: help;
     }
-    .tooltip {
+    
+    .tooltip .tooltiptext {
       visibility: hidden;
-      background: #222;
-      border: 1px solid #555;
-      color: #eee;
-      padding: 4px;
-      border-radius: 4px;
+      width: 200px;
+      background-color: var(--dark-card);
+      color: var(--dark-text);
+      text-align: center;
+      border-radius: 6px;
+      padding: 10px;
       position: absolute;
+      z-index: 1000;
       bottom: 125%;
       left: 50%;
       transform: translateX(-50%);
-      white-space: nowrap;
-      z-index: 1;
+      opacity: 0;
+      transition: opacity 0.3s;
+      border: 1px solid var(--dark-border);
+      font-size: 0.9rem;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
     }
-    body.light .tooltip {
-      background: #fff;
-      border-color: #aaa;
-      color: #111;
+    
+    .light-mode .tooltip .tooltiptext {
+      background-color: white;
+      color: #333;
+      border: 1px solid #e0e0e0;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
-    .stat:hover .tooltip {
+    
+    .tooltip:hover .tooltiptext {
       visibility: visible;
+      opacity: 1;
+    }
+    
+    .leaderboard-dropdown {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+      max-width: 200px;
+    }
+    
+    .dropbtn {
+      background: var(--theme-primary);
+      color: white;
+      padding: 12px 15px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      text-align: left;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background: var(--dark-card);
+      min-width: 100%;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+      z-index: 1;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-top: 5px;
+    }
+    
+    .light-mode .dropdown-content {
+      background: white;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
+    
+    .dropdown-content a {
+      color: var(--dark-text);
+      padding: 12px 16px;
+      text-decoration: none;
+      display: block;
+      border-bottom: 1px solid var(--dark-border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .light-mode .dropdown-content a {
+      color: #333;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .dropdown-content a:hover {
+      background: var(--dark-hover);
+    }
+    
+    .light-mode .dropdown-content a:hover {
+      background: #f5f5f5;
+    }
+    
+    .leaderboard-dropdown:hover .dropdown-content {
+      display: block;
+    }
+    
+    .floor-selector {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 15px;
+      gap: 8px;
+    }
+    
+    .floor-selector label {
+      font-size: 0.9rem;
+      color: #aaa;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .light-mode .floor-selector label {
+      color: #666;
+    }
+    
+    .floor-dropdown {
+      position: relative;
+    }
+    
+    .floor-dropdown select {
+      width: 100%;
+      padding: 10px 15px;
+      padding-right: 40px;
+      appearance: none;
+      background: var(--dark-card);
+      border: 1px solid var(--dark-border);
+      border-radius: 8px;
+      color: var(--dark-text);
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    
+    .light-mode .floor-dropdown select {
+      background: var(--dark-card);
+      color: #333;
+    }
+    
+    .floor-dropdown::after {
+      content: "⌄";
+      position: absolute;
+      top: 50%;
+      right: 15px;
+      transform: translateY(-50%);
+      pointer-events: none;
+      font-size: 1.2rem;
+      color: var(--theme-primary);
+    }
+    
+    .stat-icon {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+      vertical-align: middle;
+    }
+    
+    .value-icon {
+      margin-right: 8px;
+      font-size: 0.9em;
+    }
+    
+    @media (max-width: 600px) {
+      .container {
+        padding: 20px 15px;
+      }
+      
+      h1 {
+        font-size: 2rem;
+      }
+      
+      .search-box {
+        flex-direction: column;
+      }
+      
+      .leaderboard-filters {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .tabs {
+        flex-wrap: wrap;
+      }
+      
+      .leaderboard-row {
+        grid-template-columns: 50px 1fr 1fr 80px;
+        font-size: 0.9rem;
+        padding: 10px 15px;
+        gap: 8px;
+      }
+    }
+    
+    .skyblock-icon {
+      width: 24px;
+      height: 24px;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    
+    .leaderboard-icon {
+      width: 20px;
+      height: 20px;
+      margin-right: 5px;
+      vertical-align: middle;
+    }
+    
+    .floor-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 5px 0;
+    }
+    
+    .floor-icon {
+      width: 32px;
+      height: 32px;
+    }
+    
+    .dungeon-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.05;
+      z-index: 1;
+      pointer-events: none;
+      background: radial-gradient(circle, transparent 20%, #0f0c29 80%);
+      background-size: cover;
+      background-position: center center;
+      background-repeat: no-repeat;
+    }
+    
+    .light-mode .dungeon-bg {
+      opacity: 0.1;
+    }
+    
+    .custom-floor-dropdown {
+      position: relative;
+      display: block;
+      width: 100%;
+      margin-top: 10px;
+    }
+    
+    .floor-dropdown-btn {
+      background: var(--dark-card);
+      border: 1px solid var(--dark-border);
+      border-radius: 8px;
+      padding: 10px 15px;
+      color: var(--dark-text);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.3s;
+    }
+    
+    .light-mode .floor-dropdown-btn {
+      background: var(--dark-card);
+    }
+    
+    .floor-dropdown-content {
+      display: none;
+      position: absolute;
+      width: 100%;
+      background: var(--dark-card);
+      border: 1px solid var(--dark-border);
+      border-radius: 8px;
+      margin-top: 5px;
+      z-index: 10;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    
+    .light-mode .floor-dropdown-content {
+      background: white;
+      border: 1px solid #d1d1d1;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .floor-option {
+      padding: 10px 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .floor-option:hover {
+      background: var(--dark-hover);
+    }
+    
+    .light-mode .floor-option:hover {
+      background: #f0f0f0;
+    }
+    
+    .theme-selector {
+      position: absolute;
+      top: 50px;
+      right: 0;
+      background: var(--dark-card);
+      border: 1px solid var(--dark-border);
+      border-radius: 8px;
+      padding: 10px;
+      z-index: 100;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    
+    .theme-option {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+    
+    .theme-option.active {
+      border-color: white;
+    }
+    
+    .theme-default { background: linear-gradient(135deg, #4a9df8, #a86bf9); }
+    .theme-green { background: linear-gradient(135deg, #5cb85c, #2ecc71); }
+    .theme-purple { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+    .theme-red { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+    .theme-blue { background: linear-gradient(135deg, #3498db, #2980b9); }
+    
+    .dropdown-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .dropdown-wrapper {
+      flex: 1;
+      position: relative;
+    }
+    
+    .clear-type-btn {
+      background: var(--dark-card);
+      border: 1px solid var(--dark-border);
+      border-radius: 8px;
+      padding: 10px 15px;
+      color: var(--dark-text);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      transition: all 0.3s;
+    }
+    
+    .light-mode .clear-type-btn {
+      background: var(--dark-card);
+    }
+    
+    .clear-type-content {
+      display: none;
+      position: absolute;
+      width: 100%;
+      background: var(--dark-card);
+      border: 1px solid var(--dark-border);
+      border-radius: 8px;
+      margin-top: 5px;
+      z-index: 10;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    
+    .light-mode .clear-type-content {
+      background: white;
+      border: 1px solid #d1d1d1;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .clear-type-option {
+      padding: 10px 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .clear-type-option:hover {
+      background: var(--dark-hover);
+    }
+    
+    .light-mode .clear-type-option:hover {
+      background: #f0f0f0;
+    }
+    
+    .leaderboard-clear-dropdown {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .leaderboard-dropdown-label {
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+    
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .modal-content {
+      background: var(--dark-card);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 500px;
+      max-height: 80vh;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      position: relative;
+    }
+    
+    .light-mode .modal-content {
+      background: white;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .modal-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--dark-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .light-mode .modal-header {
+      border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .modal-header h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+    
+    .close-modal {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--dark-text);
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+    
+    .close-modal:hover {
+      background: rgba(255,255,255,0.1);
+    }
+    
+    .light-mode .close-modal {
+      color: #333;
+    }
+    
+    .light-mode .close-modal:hover {
+      background: rgba(0,0,0,0.05);
+    }
+    
+    .modal-body {
+      padding: 20px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .history-item {
+      padding: 12px 15px;
+      background: var(--dark-card);
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .light-mode .history-item {
+      background: var(--dark-card);
+    }
+    
+    .history-item:hover {
+      background: var(--dark-hover);
+    }
+    
+    .light-mode .history-item:hover {
+      background: #f0f0f0;
+    }
+    
+    .modal-footer {
+      padding: 20px;
+      display: flex;
+      justify-content: flex-end;
+      border-top: 1px solid var(--dark-border);
+    }
+    
+    .light-mode .modal-footer {
+      border-top: 1px solid #e0e0e0;
+    }
+    
+    .modal-footer button {
+      width: auto;
+    }
+    
+    .no-history {
+      text-align: center;
+      padding: 20px;
+      color: #888;
+    }
+    
+    .history-btn {
+      background: var(--fakepixel);
+      padding: 12px 15px;
+      font-size: 0.95rem;
+      max-width: 180px;
+      display: flex;
+      justify-content: center;
+    }
+    
+    .history-btn:hover {
+      background: #8e55e8;
+    }
+    
+    .controls-row {
+      justify-content: center;
+    }
+    
+    /* Credits Modal */
+    .credits-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 15px;
+      margin: 8px 0;
+      border-radius: 8px;
+      background: rgba(74, 157, 248, 0.1);
+      transition: all 0.2s;
+    }
+    
+    .light-mode .credits-item {
+      background: rgba(74, 157, 248, 0.05);
+    }
+    
+    .credits-item:hover {
+      background: rgba(74, 157, 248, 0.2);
+    }
+    
+    .light-mode .credits-item:hover {
+      background: rgba(74, 157, 248, 0.1);
+    }
+    
+    .credits-role {
+      font-weight: 600;
+      color: var(--theme-primary);
+    }
+    
+    .credits-name {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .heart {
+      color: #ff6b6b;
+    }
+    
+    .credits-title {
+      text-align: center;
+      margin-bottom: 15px;
+      color: var(--theme-primary);
+      font-size: 1.2rem;
+    }
+    
+    .fixed-notice {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.8);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      z-index: 100;
+      animation: fadeInOut 5s forwards;
+    }
+    
+    @keyframes fadeInOut {
+      0% { opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { opacity: 0; }
     }
   </style>
 </head>
 <body>
+  <div class="dungeon-bg"></div>
+  
+  <div class="fixed-notice">Leaderboard sorting algorithm fixed! Now properly handles server filtering and invalid values.</div>
+  
   <div class="container">
-    <h1>Player Stats Lookup</h1>
-    <button onclick="toggleMode()">Toggle Dark/Light Mode</button>
-    <input type="text" id="searchBox" placeholder="Type username..." oninput="updateSuggestions()" onkeypress="handleKey(event)">
-    <select id="serverFilter" onchange="updateSuggestions()">
-      <option value="all">All Servers</option>
-      <option value="hypixel">Hypixel</option>
-      <option value="fakepixel">Fakepixel</option>
-    </select>
-    <div class="suggestions" id="suggestions"></div>
-    <div class="result" id="result"></div>
+    <header>
+      <div class="header-controls">
+        <div class="theme-toggle" id="themeToggle" onclick="toggleThemeSelector()">
+          <i class="fas fa-palette"></i>
+        </div>
+        <div class="theme-toggle" id="modeToggle" onclick="toggleTheme()">
+          <i class="fas fa-moon"></i>
+        </div>
+        <div class="theme-toggle" onclick="showCreditsModal()">
+          <i class="fas fa-info-circle"></i>
+        </div>
+      </div>
+      <div class="theme-selector" id="themeSelector">
+        <div class="theme-option theme-default active" onclick="setTheme('default')"></div>
+        <div class="theme-option theme-green" onclick="setTheme('green')"></div>
+        <div class="theme-option theme-purple" onclick="setTheme('purple')"></div>
+        <div class="theme-option theme-red" onclick="setTheme('red')"></div>
+        <div class="theme-option theme-blue" onclick="setTheme('blue')"></div>
+      </div>
+      <h1><i class="fas fa-dungeon"></i> SkyBlock Player Stats</h1>
+      <p class="subtitle">Search for player statistics across Hypixel and Fakepixel servers</p>
+    </header>
+    
+    <div class="search-container">
+      <div class="search-box">
+        <input type="text" id="searchBox" placeholder="Search by username..." 
+               oninput="updateSuggestions()" 
+               onkeypress="handleKey(event)">
+        <select id="serverFilter" onchange="updateSuggestions()">
+          <option value="all">All Servers</option>
+          <option value="hypixel">Hypixel</option>
+          <option value="fakepixel">Fakepixel</option>
+        </select>
+      </div>
+      
+      <div class="suggestions" id="suggestions">
+        <!-- Suggestions will appear here -->
+      </div>
+    </div>
+    
+    <div class="controls-row">
+      <div class="leaderboard-dropdown">
+        <button class="dropbtn">
+          <i class="fas fa-trophy"></i> Show Leaderboards <i class="fas fa-caret-down"></i>
+        </button>
+        <div class="dropdown-content">
+          <a onclick="showLeaderboard('secrets')">
+            <img src="https://static.wikia.nocookie.net/hypixel-skyblock/images/6/6a/Enchanted_Ghast_Spawn_Egg.png" class="leaderboard-icon"> Top Secrets
+          </a>
+          <a onclick="showLeaderboard('clears')">
+            <img src="https://minecraft.wiki/images/Iron_Sword_JE2_BE2.png?62770" class="leaderboard-icon"> Clears
+          </a>
+        </div>
+      </div>
+      
+      <button class="history-btn" onclick="showHistoryModal()">
+        <i class="fas fa-history"></i> Search History
+      </button>
+    </div>
+    
+    <div class="result" id="result">
+      <div class="empty-state">
+        <i class="fas fa-user"></i>
+        <p>Search for a player to view their stats</p>
+        <p style="margin-top: 20px; font-size: 0.9rem; color: #aaa;">
+          Or select a leaderboard to see top players
+        </p>
+      </div>
+    </div>
+    
+    <div class="leaderboard-container" id="leaderboardContainer">
+      <div class="leaderboard-header">
+        <button class="back-button" onclick="showSearch()">
+          <i class="fas fa-arrow-left"></i> Back to Search
+        </button>
+        <h2 id="leaderboardTitle">Top Secrets Leaderboard</h2>
+      </div>
+      
+      <div class="leaderboard-filters">
+        <div class="tabs">
+          <div class="tab active" data-tab="secrets" onclick="switchTab('secrets')">
+            <img src="https://static.wikia.nocookie.net/hypixel-skyblock/images/6/6a/Enchanted_Ghast_Spawn_Egg.png" class="leaderboard-icon"> Secrets
+          </div>
+          <div class="tab" data-tab="clears" onclick="switchTab('clears')">
+            <img src="https://minecraft.wiki/images/Iron_Sword_JE2_BE2.png?62770" class="leaderboard-icon"> Clears
+          </div>
+        </div>
+        
+        <div class="server-filter-container">
+          <span>Server:</span>
+          <select id="leaderboardServerFilter" onchange="generateLeaderboard()">
+            <option value="all">All Servers</option>
+            <option value="hypixel">Hypixel</option>
+            <option value="fakepixel">Fakepixel</option>
+          </select>
+        </div>
+        
+        <div class="clear-type-container" id="clearTypeContainer" style="display: none;">
+          <span>Type:</span>
+          <div class="dropdown-wrapper">
+            <div class="clear-type-btn" id="leaderboardClearTypeBtn" onclick="toggleClearTypeDropdown('leaderboard')">
+              <div class="clear-type-option">
+                <img src="https://static.wikia.nocookie.net/hypixel-skyblock/images/f/f0/Dungeon_Ranking_S.png" class="stat-icon">
+                <span>Normal</span>
+                <i class="fas fa-caret-down"></i>
+              </div>
+            </div>
+            <div class="clear-type-content" id="leaderboardClearTypeDropdown" style="display: none;">
+              <div class="clear-type-option" onclick="setLeaderboardClearType('clear')">
+                <img src="https://static.wikia.nocookie.net/hypixel-skyblock/images/f/f0/Dungeon_Ranking_S.png" class="stat-icon">
+                <span>Normal Clear</span>
+              </div>
+              <div class="clear-type-option" onclick="setLeaderboardClearType('splus')">
+                <img src="https://static.wikia.nocookie.net/hypixel-skyblock/images/b/b7/Dungeon_Ranking_S%2B.png" class="stat-icon">
+                <span>S+ Clear</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="floor-filter-container" id="floorFilterContainer">
+          <span>Floor:</span>
+          <div class="dropdown-wrapper">
+            <div class="floor-dropdown-btn" id="leaderboardFloorBtn" onclick="toggleLeaderboardFloorDropdown()">
+              <div class="floor-option">
+                <img src="https://wiki.hypixel.net/images/8/80/SkyBlock_items_catacombs_pass_4.png" class="floor-icon">
+                <span>F7</span>
+                <i class="fas fa-caret-down"></i>
+              </div>
+            </div>
+            <div class="floor-dropdown-content" id="leaderboardFloorDropdown" style="display: none;">
+              <div class="floor-option" onclick="setLeaderboardFloor('f7')">
+                <img src="https://wiki.hypixel.net/images/8/80/SkyBlock_items_catacombs_pass_4.png" class="floor-icon">
+                <span>F7 - Normal Floor 7</span>
+              </div>
+              <div class="floor-option" onclick="setLeaderboardFloor('m7')">
+                <img src="https://wiki.hypixel.net/images/e/ee/SkyBlock_items_master_catacombs_pass_4.png" class="floor-icon">
+                <span>M7 - Master Mode Floor 7</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="stat-info" id="leaderboardInfo">
+        <i class="fas fa-info-circle"></i>
+        <span>Shows top players by secrets found</span>
+      </div>
+      
+      <div class="leaderboard" id="leaderboard">
+        <div class="leaderboard-row header">
+          <div>Rank</div>
+          <div>Player</div>
+          <div>Server</div>
+          <div>Value</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- History Modal -->
+  <div class="modal" id="historyModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2><i class="fas fa-history"></i> Search History</h2>
+        <button class="close-modal" onclick="closeHistoryModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="historyModalBody">
+        <!-- History items will be inserted here -->
+      </div>
+      <div class="modal-footer">
+        <button class="clear-history" onclick="clearSearchHistory()">
+          <i class="fas fa-trash"></i> Clear History
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Credits Modal -->
+  <div class="modal" id="creditsModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2><i class="fas fa-users"></i> Development Team</h2>
+        <button class="close-modal" onclick="closeCreditsModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="credits-title">SkyBlock Player Stats Contributors</div>
+        <div class="credits-item">
+          <div class="credits-role">Lead Developer</div>
+          <div class="credits-name">@zzzdeefer</div>
+        </div>
+        <div class="credits-item">
+          <div class="credits-role">Developer</div>
+          <div class="credits-name">@Henry282 <span class="heart">❤️</span></div>
+        </div>
+        <div class="credits-item">
+          <div class="credits-role">Developer</div>
+          <div class="credits-name">@neverleaks <span class="heart">❤️</span></div>
+        </div>
+        <div class="credits-item">
+          <div class="credits-role">Frontend & Backend Helper</div>
+          <div class="credits-name">@Ryflyy</div>
+        </div>
+        <div class="credits-item">
+          <div class="credits-role">API</div>
+          <div class="credits-name">@maryoma <span class="heart">❤️</span></div>
+        </div>
+        <div class="credits-item">
+          <div class="credits-role">API</div>
+          <div class="credits-name">@BOBSTEVE21 <span class="heart">❤️</span></div>
+        </div>
+        <div class="credits-item">
+          <div class="credits-role">API</div>
+          <div class="credits-name">@Optimus0581</div>
+        </div>
+        <div class="credits-item">
+          <div class="credits-role">API</div>
+          <div class="credits-name">@JxtJstl</div>
+        </div>
+        <div class="credits-item">
+          <div class="credits-role">Contributor</div>
+          <div class="credits-name">@andrewisnot</div>
+        </div>
+        <div class="credits-item">
+          <div class="credits-role">Special Thanks</div>
+          <div class="credits-name">@SaPV</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="close-credits" onclick="closeCreditsModal()">
+          <i class="fas fa-times"></i> Close
+        </button>
+      </div>
+    </div>
   </div>
 
   <script>
+    // =============================================
+    // MANUAL DATA CONFIGURATION - EDIT THESE ARRAYS
+    // =============================================
+    
+    // Player usernames
     const usernames = ["technegamerz", "Nxilys", "Ryflyy", "zzcyan", "Combat_Grinder", "Djamal55",
       "Ashborn007", "DEEFERCOPY", "zzzdeefer", "Henry282", "andrewisnot", "Maryoma",
       "neverleaks", "DREAMCOPY", "NTDlegend", "_Aru_10_", "CrazyGaming", "zztempest",
@@ -155,69 +1487,8 @@
       "RDX_Deemo", "Xxx_NARUTOo_xxX", "thesurvivalking", "i_am_a_cartoon", "Pranjal_54", "SarthakGamer855", "JPMASTER09", "lokesh80", "PK__man",
       "terminon", "1_hagop_1", "Itz_devil", "honterhikmet", "Its_Protection_4", "devilsayan2021", "12REvOP", "Gdkiller968031", "AshishMahiwal",
       "sharmagaming", "Anshuahuja0079", "Sparky338", "itslizzer"];
-    const secrets = [10.8, 12.6, 17.2, 18.3, 12.5, 14.8, "N/A", 16.1, 19.3,
-      17.8, 15.7, 13.2, 21.3, 14.9, 12.1, 12.3, 14.5, 19.3, 18.9,
-      16.3, 13.1, 8.9, "N/A", 20.1, 16.5, 18.2, 17.1, 17.4, 10.7,
-      13.2, 13.4, 11.2, 13.2, 11.6, 12.4, 12.8, 10.1, 10.1, "N/A",
-      10.3, "N/A", "N/A", 19.2, "N/A", 13.6, 12.6, 12.5, 11.2, 12,
-      10.2, 9.6, 12.1, 10.9, 10.4, 11.2, 12.2, 11.9, "N/A", 9.2,
-      9.3, 10.6, 10.4, "N/A", 17.7, 18.1, 16.9, 11.3,
-      10.4, 13.9, 13.9, 10.6, 10.2,
-      9.1, 17.4, 10.3, 9.4, 10.7, 16.9, 18.6, 20.2, 16.7,
-      10.5, 18.1, 10.2, 10.3, 9.5, 11.3, 13.2, 11.6, 10.8, 12.1,
-      10.3, 10.6, 11.5, 9.4, 11.7, 10.6, 9.1, 9.9, 9.6, 9.7, 10.2,
-      16.3, 20.1, 8.7, 11.4, 9.8, 8.9, 11.3, 10.1, 10.2, "N/A", "N/A",
-      19.7, 10.9, 10.2, 10.5, 10.7, 8.2, 11.3, 9.9, 8.7, 9.8,
-      10.7, 12.1, 11.4, 10.1, 11.9, 9.8, 10.1, 11.3, 10.1, 11.2,
-      9.9, 9.6, 10.7, 9.8, 10.4, 10.8, 10.1, 9.9, 10.2,
-      9.9, 18.2, 18.6, 19.3, 16.7, 16.9, 15.8, 17.7, 18.2, 17.5, 
-      16.9, 15.6, 15.7, 17.4, 9.2, 17.4, 18.1, 17.6, 18.5, 17.8, 17.6, 18.2,
-      18.4, 16.9, 19.7, 17.6, 15.4, 14.9, 16.8, 18.3, 17.6, 17.2, 16.6,
-      17.1, 18.2, 19.2, 16.8, 17.1, 16.2, 17.4, 17.7, 16.1, 17, 16, 17.2,
-      17.3, 17.3, 14.9, 14.7, 15.3, 17.9, 18.1, 17.4, 10.8, 12.1, 9.9,
-      10.4, 10.6, 9.3, 10.5, 10.6, 9.4, 10.1, 12.3, 11.1, 10.3, 10.2, 9.3, 11.6, 10.4,
-      8.9, 9.7, 10.2, 10.6, 9.9, 9.3, 8.7, 9.2, 10.8, 11.1, 10.9, 9.8, 10.3, 10.9,
-      8.8, 8.7, 19.1, 15.6, 17.3, 17.2, 16.5, 15.9, 15.1, 15.3, 13.9, 16.8,
-      16.2, 17.3, 16.9, 18.1, 17.3, 11.2, 9.3, 10.2, 9.6, 8.5, 9.1, 10.9, 10.7, 10.1, 10.2,
-      8.1, 9.7, 9.5, 9.8, 8.9, 8.5, 10.3, 8.7, 9.5, 10.7, 11.3, 10.6, 9.2, 10.4, 10.5, 8.7,
-      10.7, 8.8, 9.5, 9.9, 9.3, 10.2, 9.8, 9.9, 10.2, 9.1, 10, 9.3, 9.5, 9.6, 9.9, 10.4, 8.5,
-      9.2, 9.3, 11.1, 9.5, 9.2, 11.2, 11.5, 9.7, 8.6, 10.1, 8.5, 9.3, 11.2, 9.5, 9.9, 9.2, 9.1,
-      8.6, 9.2, 9.8, 10.4, 9.6, 9.3, 10.2, 11.1, 10.3, 8.2, 9.4, 8.9, 10.9, 9.4, 9.3, 8.7, 9.6,
-      10.1, 9.3, 10.6, 9.5, 10.8, 10.6, 9.5, 7.9, 10.4, 9.6, 11.1, 10.5, 8.6, 8.4, 8.3, 10.3];
-    const clears = ["N/A", "3:39", "3:49", "2:44", "N/A", "N/A", "goes brr", "2:58", "3:07", "2:58",
-      "2:59", "3:58", "2:47", "N/A", "N/A", "N/A", "N/A", "3:42", "3:21", "3:47",
-      "N/A", "4:11", "idk", "4:02", "3:32", "3:21", "4:16", "4:32", "N/A", "N/A",
-      "11:58", "N/A", "N/A", "3:58",
-      "N/A", "N/A", "N/A", "N/A", "real", "5:48", "?", "?", "4:38", "not 14 yet",
-      "N/A", "N/A", "N/A", "N/A", "N/A", "?", "N/A", "4:58", "N/A", "N/A", "4:07",
-      "4:15", "N/A", "N/A", "N/A", "7:29", "5:47", "N/A", "MELON MELON MELON MELON MELON!",
-      "3:42", "4:20", "4:32", "N/A", "N/A", "haiz", "haiz", "5:11", "N/A", "7:21",
-      "4:49", "N/A", "N/A", "5:36", "5:01", "3:49", "3:21", "3:47", "N/A",
-      "3:16", "N/A", "N/A", "N/A", "4:52", "4:03", "5:11", "N/A", "N/A", "N/A", "N/A",
-      "4:46", "N/A", "4:32", "5:26", "8:21", "N/A", "N/A", "N/A", "N/A", "4:47", "3:36",
-      "N/A", "4:32", "N/A", "N/A", "4:57", "N/A", "N/A", "?", "N/A", "3:41", "N/A", "N/A",
-      "N/A", "N/A", "beggar shoo shoo", "N/A", "N/A", "N/A", "5:37", "5:01", "4:48",
-      "N/A", "N/A", "4:35", "N/A", "5:01", "5:01", "N/A", "N/A", 'N/A', "N/A", "N/A", "N/A",
-      "5:20", "N/A", "N/A", "N/A", "N/A", "N/A", "3:45", "3:52", "4:11", "3:57", "4:21",
-      "5:01", "2:28", "2:33", "2:45", "3:10", "4:39", "4:48", "2:46", "N/A", "3:44", "4:11", "4:32",
-      "4:21", "3:09", "3:31", "4:09", "4:07", "5:16", "3:48", "3:56", "4:40", "5:27", "4:39", "5:00",
-      "3:20", "4:05", "4:58", "4:32", "4:49", "4:55", "4:30", "4:02", "4:09", "N/A", "4:39", "6:11",
-      "5:00", "4:30", "4:30", "3:45", "3:53", "5:11", "5:23", "4:33", "4:12", "4:17", "4:28", "5:00", 
-      "4:30", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "4:25", "N/A", "N/A", "N/A", 
-      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "5:07", "N/A", "N/A", "N/A", "N/A", "N/A", "4:58",
-      "N/A", "N/A", "N/A", "5:09", "N/A", "N/A", "2:36", "4:39", "4:17", "N/A", "N/A", "N/A", "4:21",
-      "N/A", "4:16", "4:25", "4:12", "4:38", "4:20", "3:47", "3:15", "4:50", "N/A", "N/A", "N/A", "N/A",
-      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
-      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
-      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
-      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
-      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
-      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
-      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
-      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
-      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
-      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
-      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",];
+    
+    // Server assignments (hypixel or fakepixel)
     const servers = ["fakepixel", "fakepixel", "hypixel", "hypixel", "fakepixel", "fakepixel", "fakepixel",
       "fakepixel", "hypixel", "hypixel", "fakepixel", "fakepixel", "hypixel", "fakepixel",
       "fakepixel", "fakepixel", "fakepixel", "hypixel", "hypixel", "hypixel",
@@ -266,112 +1537,900 @@
       "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel",
       "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel",
       "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel", "fakepixel"];
-
-    function safeSecretValue(v) {
-      const n = Number(v);
-      return !isNaN(n) ? n : -1; // Invalid secrets as -1
-    }
-
+    
+    // Secrets found - NOW STORED AS INTEGERS
+    const secrets = [10.8, 12.6, 17.2, 18.3, 12.5, 14.8, "N/A", 16.1, 19.3,
+      17.8, 15.7, 13.2, 21.3, 14.9, 12.1, 12.3, 14.5, 19.3, 18.9,
+      16.3, 13.1, 8.9, "N/A", 20.1, 16.5, 18.2, 17.1, 17.4, 10.7,
+      13.2, 13.4, 11.2, 13.2, 11.6, 12.4, 12.8, 10.1, 10.1, "N/A",
+      10.3, "N/A", "N/A", 19.2, "N/A", 13.6, 12.6, 12.5, 11.2, 12,
+      10.2, 9.6, 12.1, 10.9, 10.4, 11.2, 12.2, 11.9, "N/A", 9.2,
+      9.3, 10.6, 10.4, "N/A", 17.7, 18.1, 16.9, 11.3,
+      10.4, 13.9, 13.9, 10.6, 10.2,
+      9.1, 17.4, 10.3, 9.4, 10.7, 16.9, 18.6, 20.2, 16.7,
+      10.5, 18.1, 10.2, 10.3, 9.5, 11.3, 13.2, 11.6, 10.8, 12.1,
+      10.3, 10.6, 11.5, 9.4, 11.7, 10.6, 9.1, 9.9, 9.6, 9.7, 10.2,
+      16.3, 20.1, 8.7, 11.4, 9.8, 8.9, 11.3, 10.1, 10.2, "N/A", "N/A",
+      19.7, 10.9, 10.2, 10.5, 10.7, 8.2, 11.3, 9.9, 8.7, 9.8,
+      10.7, 12.1, 11.4, 10.1, 11.9, 9.8, 10.1, 11.3, 10.1, 11.2,
+      9.9, 9.6, 10.7, 9.8, 10.4, 10.8, 10.1, 9.9, 10.2,
+      9.9, 18.2, 18.6, 19.3, 16.7, 16.9, 15.8, 17.7, 18.2, 17.5, 
+      16.9, 15.6, 15.7, 17.4, 9.2, 17.4, 18.1, 17.6, 18.5, 17.8, 17.6, 18.2,
+      18.4, 16.9, 19.7, 17.6, 15.4, 14.9, 16.8, 18.3, 17.6, 17.2, 16.6,
+      17.1, 18.2, 19.2, 16.8, 17.1, 16.2, 17.4, 17.7, 16.1, 17, 16, 17.2,
+      17.3, 17.3, 14.9, 14.7, 15.3, 17.9, 18.1, 17.4, 10.8, 12.1, 9.9,
+      10.4, 10.6, 9.3, 10.5, 10.6, 9.4, 10.1, 12.3, 11.1, 10.3, 10.2, 9.3, 11.6, 10.4,
+      8.9, 9.7, 10.2, 10.6, 9.9, 9.3, 8.7, 9.2, 10.8, 11.1, 10.9, 9.8, 10.3, 10.9,
+      8.8, 8.7, 19.1, 15.6, 17.3, 17.2, 16.5, 15.9, 15.1, 15.3, 13.9, 16.8,
+      16.2, 17.3, 16.9, 18.1, 17.3, 11.2, 9.3, 10.2, 9.6, 8.5, 9.1, 10.9, 10.7, 10.1, 10.2,
+      8.1, 9.7, 9.5, 9.8, 8.9, 8.5, 10.3, 8.7, 9.5, 10.7, 11.3, 10.6, 9.2, 10.4, 10.5, 8.7,
+      10.7, 8.8, 9.5, 9.9, 9.3, 10.2, 9.8, 9.9, 10.2, 9.1, 10, 9.3, 9.5, 9.6, 9.9, 10.4, 8.5,
+      9.2, 9.3, 11.1, 9.5, 9.2, 11.2, 11.5, 9.7, 8.6, 10.1, 8.5, 9.3, 11.2, 9.5, 9.9, 9.2, 9.1,
+      8.6, 9.2, 9.8, 10.4, 9.6, 9.3, 10.2, 11.1, 10.3, 8.2, 9.4, 8.9, 10.9, 9.4, 9.3, 8.7, 9.6,
+      10.1, 9.3, 10.6, 9.5, 10.8, 10.6, 9.5, 7.9, 10.4, 9.6, 11.1, 10.5, 8.6, 8.4, 8.3, 10.3];
+    
+    // Clear times in MM:SS format - F7
+    const clears_f7 = ["N/A", "3:39", "2:48", "1:25", "N/A", "N/A", "goes brr", "2:58", "1:59", "2:03",
+      "2:59", "3:58", "1:48", "N/A", "N/A", "N/A", "N/A", "2:39", "2:15", "2:38",
+      "N/A", "4:24", "idk", "2:49", "2:29", "2:26", "3:08", "2:57", "N/A", "N/A",
+      "8:03", "N/A", "N/A", "3:56",
+      "N/A", "N/A", "N/A", "N/A", "real", "5;48", "?", "?", "3:29", "not 14 yet",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "?", "N/A", "4:58", "N/A", "N/A", "4:07",
+      "4:15", "N/A", "N/A", "N/A", "7:29", "5:47", "N/A", "MELON MELON MELON MELON MELON!",
+      "2:21", "3:04", "3:17", "N/A", "N/A", "haiz", "haiz", "5:11", "N/A", "7:21",
+      "3:36", "N/A", "N/A", "5:01", "3:38", "2:36", "2:15", "2:28", "N/A",
+      "2:18", "N/A", "N/A", "N/A", "4:23", "2:59", "5:12", "N/A", "N/A", "N/A", "N/A",
+      "4:46", "N/A", "4:32", "5:26", "8:21", "N/A", "N/A", "N/A", "N/A", "4:47", "3:36",
+      "N/A", "4:32", "N/A", "N/A", "4:57", "N/A", "N/A", "?", "N/A", "2:37", "N/A", "N/A",
+      "N/A", "N/A", "beggar shoo shoo", "N/A", "N/A", "N/A", "5:37", "5:01", "4:48",
+      "N/A", "N/A", "4:35", "N/A", "5:01", "5:01", "N/A", "N/A", 'N/A', "N/A", "N/A", "N/A",
+      "5:20", "N/A", "N/A", "N/A", "N/A", "N/A", "2:48", "2:36", "2:10", "2:45", "3:17",
+      "3:35", "1:21", "1:27", "1:38", "2:09", "3:21", "3:32", "1:42", "N/A", "2:34", "2:58", "3:09",
+      "3:01", "2:07", "2:35", "2:56", "3:01", "3:14", "2:34", "2:36", "3:48", "3:48", "3:37", "3:38",
+      "2:16", "2:55", "3:42", "3:16", "3:23", "3:27", "3:09", "2:52", "2:42", "N/A", "3:24", "4:32",
+      "3:29", "3:16", "3:17", "2:38", "2:46", "3:41", "3:57", "3:26", "2:54", "2:57", "3:05", "4:29", 
+      "4:30", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "4:25", "N/A", "N/A", "N/A", 
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "5:07", "N/A", "N/A", "N/A", "N/A", "N/A", "4:58",
+      "N/A", "N/A", "N/A", "5:09", "N/A", "N/A", "1:29", "3:48", "3:04", "N/A", "N/A", "N/A", "3:06",
+      "N/A", "2:57", "3:01", "2:52", "4:11", "3:07", "2:35", "2:03", "4:49", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A"];
+    
+    // Clear times in MM:SS format - M7
+    const clears_m7 = ["N/A", "N/A", "2:39", "1:53", "N/A", "N/A", "goes brr", "N/A", "2:23", "2:19",
+      "4:05", "N/A", "1:47", "N/A", "N/A", "N/A", "N/A", "2:42", "2:51", "2:39",
+      "N/A", "N/A", "idk", "3:32", "2:32", "2:29", "3:19", "3:16", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "real", "N/A", "?", "?", "3:39", "not 14 yet",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "?", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "MELON MELON MELON MELON MELON!",
+      "2:37", "3:01", "3:16", "N/A", "N/A", "haiz", "haiz", "N/A", "N/A", "N/A",
+      "3:20", "N/A", "N/A", "N/A", "N/A", "2:48", "2:20", "3:27", "N/A",
+      "3:25", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "3:32", "1:39",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "?", "N/A", "2:15", "N/A", "N/A",
+      "N/A", "N/A", "beggar shoo shoo", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", 'N/A', "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "2:59", "3:17", "3:29", "3:42", "3:59",
+      "3:35", "2:29", "2:53", "2:43", "3:05", "3:57", "4:03", "2:39", "N/A", "2:18", "3:12", "4:15",
+      "3:28", "2:30", "2:48", "3:37", "3:01", "3:15", "2:45", "3:19", "3:21", "4:12", "3:48", "4:02",
+      "2:51", "3:02", "3:53", "3:27", "3:32", "3:17", "3:17", "2:58", "3:35", "4:19", "3:47", "3:39",
+      "4:00", "N/A", "N/A", "2:37", "2:54", "3:15", "4:01", "3:12", "3:07", "3:35", "3:36", "N/A", 
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", 
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "2:17", "3:49", "3:35", "3:49", "N/A", "3:58", "4:05",
+      "4:01", "3:26", "3:45", "3:09", "3:05", "3:30", "2:49", "2:35", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A"]
+    
+    // S+ clear times in MM:SS format - F7
+    const splus_f7 = ["N/A", "6:30", "3:49", "2:44", "N/A", "N/A", "goes brr", "4:22", "3:07", "2:58",
+      "3:59", "7:05", "2:47", "N/A", "N/A", "N/A", "N/A", "3:42", "3:21", "3:47",
+      "6:23", "N/A", "idk", "4:02", "3:32", "3:21", "4:16", "4:32", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "6:05",
+      "N/A", "N/A", "N/A", "N/A", "real", "N/A", "?", "?", "4:38", "not 14 yet",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "?", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "MELON MELON MELON MELON MELON!",
+      "3:42", "4:20", "4:32", "N/A", "N/A", "haiz", "haiz", "N/A", "N/A", "N/A",
+      "4:49", "N/A", "N/A", "N/A", "N/A", "3:49", "3:21", "3:47", "N/A",
+      "3:16", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "4:47", "3:36",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "?", "N/A", "3:41", "N/A", "N/A",
+      "N/A", "N/A", "beggar shoo shoo", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", 'N/A', "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "3:45", "3:52", "4:11", "3:57", "4:21",
+      "5:01", "2:28", "2:33", "2:45", "3:10", "4:39", "4:48", "2:46", "N/A", "3:44", "4:11", "4:32",
+      "4:21", "3:09", "3:31", "4:09", "4:07", "5:16", "3:48", "3:56", "4:40", "5:27", "4:39", "5:00",
+      "3:20", "4:05", "4:58", "4:32", "4:49", "4:55", "4:30", "4:02", "4:09", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "3:45", "3:53", "5:11", "5:23", "4:33", "4:12", "4:17", "4:28", "N/A", 
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", 
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "2:36", "4:39", "4:17", "4:20", "N/A", "3:58", "4:05",
+      "5:11", "4:01", "5:01", "4:13", "3:21", "4:30", "3:47", "3:35", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A"];
+    
+    // S+ clear times in MM:SS format - M7
+    const splus_m7 = ["N/A", "N/A", "4:12", "3:09", "N/A", "N/A", "goes brr", "N/A", "3:50", "4:12",
+      "6:24", "N/A", "3:05", "N/A", "N/A", "N/A", "N/A", "3:37", "4:19", "3:40",
+      "N/A", "N/A", "idk", "5:11", "3:59", "4:02", "5:03", "4:58", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "real", "N/A", "?", "?", "5:26", "not 14 yet",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "?", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "MELON MELON MELON MELON MELON!",
+      "4:03", "4:36", "4:43", "N/A", "N/A", "haiz", "haiz", "N/A", "N/A", "N/A",
+      "4:37", "N/A", "N/A", "N/A", "N/A", "4:12", "4:08", "5:09", "N/A",
+      "5:15", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "5:21", "3:02",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "?", "N/A", "3:28", "N/A", "N/A",
+      "N/A", "N/A", "beggar shoo shoo", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", 'N/A', "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "4:32", "4:48", "4:51", "5:47", "5:49",
+      "5:12", "3:52", "4:19", "4:02", "4:21", "5:12", "5:23", "4:03", "N/A", "3:41", "4:49", "6:27",
+      "4:59", "4:07", "4:20", "4:44", "4:35", "4:46", "5:13", "4:38", "4:46", "5:46", "5:01", "5:34",
+      "4:12", "4:32", "5:12", "5:09", "4:55", "4:40", "4:38", "4:26", "5:04", "5:24", "5:11", "5:10",
+      "6:02", "N/A", "N/A", "4:02", "4:16", "4:44", "5:49", "4:34", "4:41", "5:01", "5:08", "N/A", 
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", 
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "3:45", "5:23", "5:02", "5:19", "N/A", "5:18", "5:27",
+      "5:29", "5:38", "5:19", "4:28", "4:33", "5:02", "4:12", "4:08", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A",
+      "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A"];
+    
+    // =============================================
+    // END OF MANUAL DATA CONFIGURATION
+    // =============================================
+    
+    // Current selections for player stats
+    let playerCurrentFloor = "f7";
+    let playerCurrentClearType = "clear";
+    
+    // Current selections for leaderboard
+    let leaderboardCurrentFloor = "f7";
+    let leaderboardCurrentClearType = "clear";
+    
+    // Theme state
+    let isDarkMode = true;
+    let currentTheme = "default";
+    
+    // Search history
+    let searchHistory = [];
+    
+    // Helper functions
     function timeToSeconds(time) {
       if (typeof time !== "string") return Infinity;
       if (time === "N/A" || time.includes("idk") || time.includes("?")) return Infinity;
       const parts = time.split(":").map(Number);
       return parts[0] * 60 + parts[1];
     }
-
+    
     function computeRanks(names, values, servers, serverFilter, sortDescending) {
-      const data = names
-        .map((name, i) => ({ name, value: values[i], server: servers[i] }))
-        .filter(p => (serverFilter ? p.server === serverFilter : true) && isFinite(p.value) && p.value !== -1);
+      // Create an array of valid players
+      const validPlayers = names
+        .map((name, i) => ({ 
+          name, 
+          value: values[i], 
+          server: servers[i],
+          isValid: isFinite(values[i]) && values[i] !== -1
+        }))
+        .filter(p => p.isValid && (serverFilter === null || serverFilter === 'all' || p.server === serverFilter));
 
-      data.sort((a, b) =>
-        sortDescending ? b.value - a.value : a.value - b.value
-      );
+      // Sort the valid players
+      validPlayers.sort((a, b) => {
+        if (sortDescending) {
+          return b.value - a.value; // Higher values are better
+        } else {
+          return a.value - b.value; // Lower values are better
+        }
+      });
 
-      return data.reduce((ranks, p, idx) => {
-        ranks[p.name] = idx + 1;
-        return ranks;
-      }, {});
+      // Create the rank mapping
+      const rankMap = {};
+      validPlayers.forEach((player, index) => {
+        rankMap[player.name] = index + 1;
+      });
+      
+      return rankMap;
     }
 
-    const secretValues = secrets.map(safeSecretValue);
-    const clearSeconds = clears.map(timeToSeconds);
+    // Precompute ranks
+    const clearF7Seconds = clears_f7.map(timeToSeconds);
+    const clearM7Seconds = clears_m7.map(timeToSeconds);
+    const splusF7Seconds = splus_f7.map(timeToSeconds);
+    const splusM7Seconds = splus_m7.map(timeToSeconds);
 
-    const secretOverall = computeRanks(usernames, secretValues, servers, null, true);
-    const clearOverall = computeRanks(usernames, clearSeconds, servers, null, false);
-    const secretHypixel = computeRanks(usernames, secretValues, servers, "hypixel", true);
-    const clearHypixel = computeRanks(usernames, clearSeconds, servers, "hypixel", false);
-    const secretFakepixel = computeRanks(usernames, secretValues, servers, "fakepixel", true);
-    const clearFakepixel = computeRanks(usernames, clearSeconds, servers, "fakepixel", false);
+    const secretOverall = computeRanks(usernames, secrets, servers, null, true);
+    const clearF7Overall = computeRanks(usernames, clearF7Seconds, servers, null, false);
+    const clearM7Overall = computeRanks(usernames, clearM7Seconds, servers, null, false);
+    const splusF7Overall = computeRanks(usernames, splusF7Seconds, servers, null, false);
+    const splusM7Overall = computeRanks(usernames, splusM7Seconds, servers, null, false);
+    
+    const secretHypixel = computeRanks(usernames, secrets, servers, "hypixel", true);
+    const clearF7Hypixel = computeRanks(usernames, clearF7Seconds, servers, "hypixel", false);
+    const clearM7Hypixel = computeRanks(usernames, clearM7Seconds, servers, "hypixel", false);
+    const splusF7Hypixel = computeRanks(usernames, splusF7Seconds, servers, "hypixel", false);
+    const splusM7Hypixel = computeRanks(usernames, splusM7Seconds, servers, "hypixel", false);
+    
+    const secretFakepixel = computeRanks(usernames, secrets, servers, "fakepixel", true);
+    const clearF7Fakepixel = computeRanks(usernames, clearF7Seconds, servers, "fakepixel", false);
+    const clearM7Fakepixel = computeRanks(usernames, clearM7Seconds, servers, "fakepixel", false);
+    const splusF7Fakepixel = computeRanks(usernames, splusF7Seconds, servers, "fakepixel", false);
+    const splusM7Fakepixel = computeRanks(usernames, splusM7Seconds, servers, "fakepixel", false);
 
-function updateSuggestions() {
-  const input = document.getElementById("searchBox").value.toLowerCase();
-  const server = document.getElementById("serverFilter").value;
-  const suggestionsDiv = document.getElementById("suggestions");
-  suggestionsDiv.innerHTML = "";
+    function updateSuggestions() {
+      const input = document.getElementById("searchBox").value.toLowerCase();
+      const server = document.getElementById("serverFilter").value;
+      const suggestionsDiv = document.getElementById("suggestions");
+      suggestionsDiv.innerHTML = "";
 
-  if (!input.trim()) {
-    suggestionsDiv.style.display = "none";  // Hides suggestion box if empty
-    return;
-  }
+      if (!input.trim()) {
+        suggestionsDiv.style.display = "none";
+        return;
+      }
 
-  usernames.forEach((name, i) => {
-    if (name.toLowerCase().includes(input) && (server === "all" || servers[i] === server)) {
-      const div = document.createElement("div");
-      div.className = "suggestion";
-      div.textContent = `${name} [${servers[i]}]`;
-      div.onclick = () => {
-        document.getElementById("searchBox").value = name;
-        suggestionsDiv.innerHTML = "";
-        suggestionsDiv.style.display = "none"; // Also hide box when a suggestion is clicked
-        displayResult(i);
-      };
-      suggestionsDiv.appendChild(div);
+      let hasSuggestions = false;
+      
+      usernames.forEach((name, i) => {
+        if (name.toLowerCase().includes(input) && (server === "all" || servers[i] === server)) {
+          hasSuggestions = true;
+          const div = document.createElement("div");
+          div.className = "suggestion";
+          
+          div.innerHTML = `
+            <span>${name}</span>
+            <span class="server-tag ${servers[i]}">${capitalize(servers[i])}</span>
+          `;
+          
+          div.onclick = () => {
+            document.getElementById("searchBox").value = name;
+            suggestionsDiv.innerHTML = "";
+            suggestionsDiv.style.display = "none";
+            addToSearchHistory(name, servers[i]);
+            displayResult(i);
+          };
+          
+          suggestionsDiv.appendChild(div);
+        }
+      });
+
+      suggestionsDiv.style.display = hasSuggestions ? "block" : "none";
     }
-  });
-
-  // Show or hide suggestions box depending on if we have suggestions
-  suggestionsDiv.style.display = suggestionsDiv.children.length > 0 ? "block" : "none";
-}
 
     function handleKey(event) {
       if (event.key === "Enter") {
         const val = document.getElementById("searchBox").value.toLowerCase();
         const server = document.getElementById("serverFilter").value;
-        const i = usernames.findIndex((name, idx) => name.toLowerCase() === val && (server === "all" || servers[idx] === server));
+        const i = usernames.findIndex((name, idx) => 
+          name.toLowerCase() === val && (server === "all" || servers[idx] === server)
+        );
+        
         if (i !== -1) {
+          addToSearchHistory(usernames[i], servers[i]);
           displayResult(i);
           document.getElementById("suggestions").innerHTML = "";
+          document.getElementById("suggestions").style.display = "none";
         } else {
-          document.getElementById("result").innerHTML = "<div>No matching player found</div>";
+          document.getElementById("result").innerHTML = `
+            <div class="empty-state">
+              <i class="fas fa-user-slash"></i>
+              <p>No matching player found</p>
+            </div>
+          `;
         }
       }
     }
 
     function displayResult(i) {
+      const serverClass = servers[i];
+      const serverName = capitalize(servers[i]);
+      
       document.getElementById("result").innerHTML = `
-        <div><strong>${usernames[i]}</strong> [${servers[i]}]</div>
-        <div class="stat">Secrets: ${secrets[i]}
-          <div class="tooltip">
-            Overall Secret Rank: ${secretOverall[usernames[i]] ? "#" + secretOverall[usernames[i]] : "N/A"}
-            <br>${capitalize(servers[i])} Secret Rank: ${servers[i] === "hypixel" ? (secretHypixel[usernames[i]] ? "#" + secretHypixel[usernames[i]] : "N/A") : (secretFakepixel[usernames[i]] ? "#" + secretFakepixel[usernames[i]] : "N/A")}
+        <div class="player-header">
+          <div class="player-name">
+            <i class="fas fa-user"></i> ${usernames[i]}
+          </div>
+          <div class="server-tag ${serverClass}">${serverName}</div>
+        </div>
+        
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-title">
+              <img src="https://static.wikia.nocookie.net/hypixel-skyblock/images/6/6a/Enchanted_Ghast_Spawn_Egg.png" alt="Secrets" class="stat-icon">
+              Secrets Found
+              <div class="tooltip">
+                <i class="fas fa-info-circle"></i>
+                <span class="tooltiptext">Secret per minute speed</span>
+              </div>
+            </div>
+            <div class="stat-value">${secrets[i].toLocaleString()}</div>
+            <div class="stat-ranks">
+              <div class="rank-item">
+                <span class="rank-label">Overall Rank:</span>
+                <span class="rank-value">${secretOverall[usernames[i]] ? "#" + secretOverall[usernames[i]] : "N/A"}</span>
+              </div>
+              <div class="rank-item">
+                <span class="rank-label">${serverName} Rank:</span>
+                <span class="rank-value">
+                  ${servers[i] === "hypixel" ? 
+                    (secretHypixel[usernames[i]] ? "#" + secretHypixel[usernames[i]] : "N/A") : 
+                    (secretFakepixel[usernames[i]] ? "#" + secretFakepixel[usernames[i]] : "N/A")}
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-title">
+              <img src="https://static.wikia.nocookie.net/hypixel-skyblock/images/f/f0/Dungeon_Ranking_S.png" alt="Clear" class="stat-icon">
+              Dungeon Clear Time
+              <div class="tooltip">
+                <i class="fas fa-info-circle"></i>
+                <span class="tooltiptext">Dungeons clear time</span>
+              </div>
+            </div>
+            
+            <div class="dropdown-row">
+              <div class="dropdown-wrapper">
+                <div class="clear-type-btn" onclick="toggleClearTypeDropdown('player')">
+                  <div class="clear-type-option">
+                    <img src="${playerCurrentClearType === 'clear' ? 
+                      'https://static.wikia.nocookie.net/hypixel-skyblock/images/f/f0/Dungeon_Ranking_S.png' : 
+                      'https://static.wikia.nocookie.net/hypixel-skyblock/images/b/b7/Dungeon_Ranking_S%2B.png'}" 
+                      class="stat-icon">
+                    <span>${playerCurrentClearType === 'clear' ? 'Normal' : 'S+'}</span>
+                    <i class="fas fa-caret-down"></i>
+                  </div>
+                </div>
+                <div class="clear-type-content" id="playerClearTypeDropdown" style="display: none;">
+                  <div class="clear-type-option" onclick="setPlayerClearType('clear', ${i})">
+                    <img src="https://static.wikia.nocookie.net/hypixel-skyblock/images/f/f0/Dungeon_Ranking_S.png" class="stat-icon">
+                    <span>Normal Clear</span>
+                  </div>
+                  <div class="clear-type-option" onclick="setPlayerClearType('splus', ${i})">
+                    <img src="https://static.wikia.nocookie.net/hypixel-skyblock/images/b/b7/Dungeon_Ranking_S%2B.png" class="stat-icon">
+                    <span>S+ Clear</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="dropdown-wrapper">
+                <div class="floor-dropdown-btn" onclick="togglePlayerFloorDropdown()">
+                  <div class="floor-option">
+                    <img src="${playerCurrentFloor === 'f7' ? 
+                      'https://wiki.hypixel.net/images/8/80/SkyBlock_items_catacombs_pass_4.png' : 
+                      'https://wiki.hypixel.net/images/e/ee/SkyBlock_items_master_catacombs_pass_4.png'}" 
+                      class="floor-icon">
+                    <span>${playerCurrentFloor === 'f7' ? 'F7' : 'M7'}</span>
+                    <i class="fas fa-caret-down"></i>
+                  </div>
+                </div>
+                <div class="floor-dropdown-content" id="playerFloorDropdown" style="display: none;">
+                  <div class="floor-option" onclick="setPlayerFloor('f7', ${i})">
+                    <img src="https://wiki.hypixel.net/images/8/80/SkyBlock_items_catacombs_pass_4.png" class="floor-icon">
+                    <span>F7 - Normal Floor 7</span>
+                  </div>
+                  <div class="floor-option" onclick="setPlayerFloor('m7', ${i})">
+                    <img src="https://wiki.hypixel.net/images/e/ee/SkyBlock_items_master_catacombs_pass_4.png" class="floor-icon">
+                    <span>M7 - Master Mode Floor 7</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="stat-value ${playerCurrentClearType === 'splus' ? 'splus-value' : ''}">
+              ${getClearValue(i)}
+            </div>
+            <div class="stat-ranks">
+              ${getClearRanksHTML(i)}
+            </div>
           </div>
         </div>
-        <div class="stat">Clear PB: ${clears[i]}
-          <div class="tooltip">
-            Overall Clear Rank: ${clearOverall[usernames[i]] ? "#" + clearOverall[usernames[i]] : "N/A"}
-            <br>${capitalize(servers[i])} Clear Rank: ${servers[i] === "hypixel" ? (clearHypixel[usernames[i]] ? "#" + clearHypixel[usernames[i]] : "N/A") : (clearFakepixel[usernames[i]] ? "#" + clearFakepixel[usernames[i]] : "N/A")}
-          </div>
-        </div>`;
+      `;
+    }
+    
+    function getClearValue(i) {
+      if (playerCurrentClearType === 'clear') {
+        return playerCurrentFloor === 'f7' ? clears_f7[i] : clears_m7[i];
+      } else {
+        return playerCurrentFloor === 'f7' ? splus_f7[i] : splus_m7[i];
+      }
+    }
+    
+    function getClearRanksHTML(i) {
+      const serverName = capitalize(servers[i]);
+      let overallRank, serverRank;
+      
+      if (playerCurrentClearType === 'clear') {
+        if (playerCurrentFloor === "f7") {
+          overallRank = clearF7Overall[usernames[i]];
+          serverRank = servers[i] === "hypixel" ? 
+            clearF7Hypixel[usernames[i]] : 
+            clearF7Fakepixel[usernames[i]];
+        } else {
+          overallRank = clearM7Overall[usernames[i]];
+          serverRank = servers[i] === "hypixel" ? 
+            clearM7Hypixel[usernames[i]] : 
+            clearM7Fakepixel[usernames[i]];
+        }
+      } else {
+        if (playerCurrentFloor === "f7") {
+          overallRank = splusF7Overall[usernames[i]];
+          serverRank = servers[i] === "hypixel" ? 
+            splusF7Hypixel[usernames[i]] : 
+            splusF7Fakepixel[usernames[i]];
+        } else {
+          overallRank = splusM7Overall[usernames[i]];
+          serverRank = servers[i] === "hypixel" ? 
+            splusM7Hypixel[usernames[i]] : 
+            splusM7Fakepixel[usernames[i]];
+        }
+      }
+      
+      return `
+        <div class="rank-item">
+          <span class="rank-label">Overall Rank:</span>
+          <span class="rank-value">${overallRank ? "#" + overallRank : "N/A"}</span>
+        </div>
+        <div class="rank-item">
+          <span class="rank-label">${serverName} Rank:</span>
+          <span class="rank-value">${serverRank ? "#" + serverRank : "N/A"}</span>
+        </div>
+      `;
+    }
+    
+    function setPlayerClearType(type, playerIndex) {
+      playerCurrentClearType = type;
+      displayResult(playerIndex);
+      document.getElementById("playerClearTypeDropdown").style.display = "none";
+    }
+    
+    function setPlayerFloor(floor, playerIndex) {
+      playerCurrentFloor = floor;
+      displayResult(playerIndex);
+      document.getElementById("playerFloorDropdown").style.display = "none";
+    }
+    
+    function togglePlayerFloorDropdown() {
+      const dropdown = document.getElementById("playerFloorDropdown");
+      dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+      document.getElementById("playerClearTypeDropdown").style.display = "none";
+    }
+    
+    function toggleClearTypeDropdown(context) {
+      const dropdownId = context === 'player' ? 'playerClearTypeDropdown' : 'leaderboardClearTypeDropdown';
+      const dropdown = document.getElementById(dropdownId);
+      dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+    }
+    
+    function setLeaderboardClearType(type) {
+      leaderboardCurrentClearType = type;
+      const btn = document.getElementById('leaderboardClearTypeBtn');
+      const img = btn.querySelector('img');
+      const span = btn.querySelector('span');
+      
+      img.src = type === 'clear' ? 
+        'https://static.wikia.nocookie.net/hypixel-skyblock/images/f/f0/Dungeon_Ranking_S.png' : 
+        'https://static.wikia.nocookie.net/hypixel-skyblock/images/b/b7/Dungeon_Ranking_S%2B.png';
+      span.textContent = type === 'clear' ? 'Normal' : 'S+';
+      
+      document.getElementById("leaderboardClearTypeDropdown").style.display = "none";
+      generateLeaderboard();
+    }
+    
+    function setLeaderboardFloor(floor) {
+      leaderboardCurrentFloor = floor;
+      const btn = document.getElementById('leaderboardFloorBtn');
+      const img = btn.querySelector('img');
+      const span = btn.querySelector('span');
+      
+      img.src = floor === 'f7' ? 
+        'https://wiki.hypixel.net/images/8/80/SkyBlock_items_catacombs_pass_4.png' : 
+        'https://wiki.hypixel.net/images/e/ee/SkyBlock_items_master_catacombs_pass_4.png';
+      span.textContent = floor === 'f7' ? 'F7' : 'M7';
+      
+      document.getElementById("leaderboardFloorDropdown").style.display = "none";
+      generateLeaderboard();
+    }
+    
+    function toggleLeaderboardFloorDropdown() {
+      const dropdown = document.getElementById("leaderboardFloorDropdown");
+      dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+      document.getElementById("leaderboardClearTypeDropdown").style.display = "none";
     }
 
     function capitalize(str) {
       return str.charAt(0).toUpperCase() + str.slice(1);
     }
-
-    function toggleMode() {
-      document.body.classList.toggle("light");
+    
+    function showLeaderboard(type) {
+      document.getElementById("result").style.display = "none";
+      const container = document.getElementById("leaderboardContainer");
+      container.style.display = "block";
+      
+      // Set active tab
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      document.querySelector(`.tab[data-tab="${type}"]`).classList.add('active');
+      
+      // Update title
+      const title = document.getElementById("leaderboardTitle");
+      title.textContent = getLeaderboardTitle(type);
+      
+      // Update info text
+      const info = document.getElementById("leaderboardInfo");
+      info.innerHTML = `
+        <i class="fas fa-info-circle"></i>
+        <span>${getLeaderboardDescription(type)}</span>
+      `;
+      
+      // Show/hide clear type toggle
+      const clearTypeContainer = document.getElementById('clearTypeContainer');
+      clearTypeContainer.style.display = type === 'clears' ? 'flex' : 'none';
+      
+      // Show/hide floor filter
+      const floorFilterContainer = document.getElementById('floorFilterContainer');
+      floorFilterContainer.style.display = type === 'clears' ? 'flex' : 'none';
+      
+      // Generate leaderboard
+      generateLeaderboard();
     }
+    
+    function getLeaderboardTitle(type) {
+      switch(type) {
+        case 'secrets': return 'Top Secrets Leaderboard';
+        case 'clears': return 'Clears Leaderboard';
+        default: return 'Leaderboard';
+      }
+    }
+    
+    function getLeaderboardDescription(type) {
+      switch(type) {
+        case 'secrets': return 'Shows top players by secrets found';
+        case 'clears': return 'Shows players with the fastest dungeon clear times';
+        default: return 'Top players';
+      }
+    }
+    
+    function showSearch() {
+      document.getElementById("leaderboardContainer").style.display = "none";
+      document.getElementById("result").style.display = "block";
+    }
+    
+    function switchTab(type) {
+      // Set active tab
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      document.querySelector(`.tab[data-tab="${type}"]`).classList.add('active');
+      
+      // Update title
+      const title = document.getElementById("leaderboardTitle");
+      title.textContent = getLeaderboardTitle(type);
+      
+      // Update info text
+      const info = document.getElementById("leaderboardInfo");
+      info.innerHTML = `
+        <i class="fas fa-info-circle"></i>
+        <span>${getLeaderboardDescription(type)}</span>
+      `;
+      
+      // Show/hide clear type toggle
+      const clearTypeContainer = document.getElementById('clearTypeContainer');
+      clearTypeContainer.style.display = type === 'clears' ? 'flex' : 'none';
+      
+      // Show/hide floor filter
+      const floorFilterContainer = document.getElementById('floorFilterContainer');
+      floorFilterContainer.style.display = type === 'clears' ? 'flex' : 'none';
+      
+      // Generate leaderboard
+      generateLeaderboard();
+    }
+    
+    function generateLeaderboard() {
+      const leaderboard = document.getElementById("leaderboard");
+      // Clear existing rows except header
+      while (leaderboard.children.length > 1) {
+        leaderboard.removeChild(leaderboard.lastChild);
+      }
+      
+      // Get current tab and server filter
+      const type = document.querySelector('.tab.active').dataset.tab;
+      const serverFilter = document.getElementById('leaderboardServerFilter').value;
+      
+      // Create player data with values
+      let players = usernames.map((name, i) => ({
+        name,
+        server: servers[i],
+        value: type === 'secrets' ? secrets[i] : 
+               leaderboardCurrentClearType === 'clear' ? 
+                 (leaderboardCurrentFloor === 'f7' ? clears_f7[i] : clears_m7[i]) : 
+                 (leaderboardCurrentFloor === 'f7' ? splus_f7[i] : splus_m7[i]),
+        sortValue: type === 'secrets' ? secrets[i] : 
+                   leaderboardCurrentClearType === 'clear' ? 
+                     (leaderboardCurrentFloor === 'f7' ? clearF7Seconds[i] : clearM7Seconds[i]) : 
+                     (leaderboardCurrentFloor === 'f7' ? splusF7Seconds[i] : splusM7Seconds[i]),
+        rank: type === 'secrets' ? secretOverall[name] : 
+              leaderboardCurrentClearType === 'clear' ? 
+                (leaderboardCurrentFloor === 'f7' ? clearF7Overall[name] : clearM7Overall[name]) : 
+                (leaderboardCurrentFloor === 'f7' ? splusF7Overall[name] : splusM7Overall[name])
+      }));
+      
+      // Filter by server and valid values
+      players = players.filter(player => {
+        // For secrets, filter out invalid values
+        if (type === 'secrets') {
+          return player.sortValue > 0 && 
+                 (serverFilter === 'all' || player.server === serverFilter);
+        } 
+        // For clears, filter out Infinity (invalid times)
+        else {
+          return isFinite(player.sortValue) && 
+                 player.sortValue > 0 &&
+                 (serverFilter === 'all' || player.server === serverFilter);
+        }
+      });
+      
+      // Sort players
+      players.sort((a, b) => {
+        if (type === 'secrets') {
+          return b.sortValue - a.sortValue; // Higher values are better
+        } else {
+          return a.sortValue - b.sortValue; // Lower times are better for clears
+        }
+      });
+      
+      // Display top players (up to 50)
+      players.slice(0, 50).forEach((player, index) => {
+        const row = document.createElement('div');
+        row.className = 'leaderboard-row';
+        
+        // Custom rank icons for top positions
+        let rankHTML;
+        if (index === 0) {
+          rankHTML = `<img src="https://minecraft.wiki/images/Gold_Ingot_JE4_BE2.png?80cd6" class="rank-icon" alt="1st">`;
+        } else if (index === 1) {
+          rankHTML = `<img src="https://minecraft.wiki/images/Iron_Ingot_JE3_BE2.png?849cb" class="rank-icon" alt="2nd">`;
+        } else if (index === 2) {
+          rankHTML = `<img src="https://minecraft.wiki/images/Brick_JE2_BE2.png?1ff17" class="rank-icon" alt="3rd">`;
+        } else {
+          rankHTML = `<span>${index+1}</span>`;
+        }
+        
+        // Determine icon based on leaderboard type
+        let valueIcon;
+        if (type === 'secrets') {
+          valueIcon = '<img src="https://static.wikia.nocookie.net/hypixel-skyblock/images/6/6a/Enchanted_Ghast_Spawn_Egg.png" class="leaderboard-icon">';
+        } else {
+          valueIcon = leaderboardCurrentClearType === 'clear' ?
+            '<img src="https://static.wikia.nocookie.net/hypixel-skyblock/images/f/f0/Dungeon_Ranking_S.png" class="leaderboard-icon">' :
+            '<img src="https://static.wikia.nocookie.net/hypixel-skyblock/images/b/b7/Dungeon_Ranking_S%2B.png" class="leaderboard-icon">';
+        }
+        
+        // Format numbers with commas if it's a secret count
+        const displayValue = type === 'secrets' ? player.value.toLocaleString() : player.value;
+        
+        row.innerHTML = `
+          <div class="rank-cell">
+            ${rankHTML}
+          </div>
+          <div class="player-cell">
+            <span>${player.name}</span>
+          </div>
+          <div>
+            <span class="server-tag ${player.server}">${capitalize(player.server)}</span>
+          </div>
+          <div>
+            ${valueIcon} ${displayValue}
+          </div>
+        `;
+        
+        leaderboard.appendChild(row);
+      });
+    }
+    
+    // Search history functions
+    function addToSearchHistory(name, server) {
+      const historyItem = { name, server, timestamp: Date.now() };
+      
+      // Remove if already exists
+      searchHistory = searchHistory.filter(item => item.name !== name);
+      
+      // Add to beginning
+      searchHistory.unshift(historyItem);
+      
+      // Keep only last 10 items
+      if (searchHistory.length > 10) {
+        searchHistory.pop();
+      }
+      
+      // Save to localStorage
+      localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+    }
+    
+    function showHistoryModal() {
+      const modal = document.getElementById('historyModal');
+      const modalBody = document.getElementById('historyModalBody');
+      
+      modal.style.display = 'flex';
+      
+      if (searchHistory.length === 0) {
+        modalBody.innerHTML = `<div class="no-history"><i class="fas fa-history"></i><p>No search history found</p></div>`;
+        return;
+      }
+      
+      modalBody.innerHTML = '<div class="history-list"></div>';
+      const historyList = modalBody.querySelector('.history-list');
+      
+      searchHistory.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        div.innerHTML = `
+          <span>${item.name}</span>
+          <span class="server-tag ${item.server}">${capitalize(item.server)}</span>
+        `;
+        div.onclick = () => {
+          document.getElementById('searchBox').value = item.name;
+          const i = usernames.findIndex(name => name === item.name);
+          if (i !== -1) displayResult(i);
+          closeHistoryModal();
+        };
+        historyList.appendChild(div);
+      });
+    }
+    
+    function closeHistoryModal() {
+      document.getElementById('historyModal').style.display = 'none';
+    }
+    
+    function clearSearchHistory() {
+      searchHistory = [];
+      localStorage.removeItem('searchHistory');
+      const modalBody = document.getElementById('historyModalBody');
+      modalBody.innerHTML = `<div class="no-history"><i class="fas fa-history"></i><p>Search history cleared</p></div>`;
+    }
+    
+    // Credits Modal functions
+    function showCreditsModal() {
+      document.getElementById('creditsModal').style.display = 'flex';
+    }
+    
+    function closeCreditsModal() {
+      document.getElementById('creditsModal').style.display = 'none';
+    }
+    
+    // Theme functions
+    function toggleTheme() {
+      isDarkMode = !isDarkMode;
+      document.body.classList.toggle('light-mode', !isDarkMode);
+      document.querySelector('#modeToggle i').className = isDarkMode ? 'fas fa-moon' : 'fas fa-sun';
+      localStorage.setItem('darkMode', isDarkMode);
+    }
+    
+    function toggleThemeSelector() {
+      const selector = document.getElementById('themeSelector');
+      selector.style.display = selector.style.display === 'flex' ? 'none' : 'flex';
+    }
+    
+    function setTheme(theme) {
+      currentTheme = theme;
+      
+      // Update active indicator
+      document.querySelectorAll('.theme-option').forEach(option => {
+        option.classList.remove('active');
+      });
+      document.querySelector(`.theme-${theme}`).classList.add('active');
+      
+      // Set theme colors
+      switch(theme) {
+        case 'default':
+          document.documentElement.style.setProperty('--theme-primary', '#4a9df8');
+          document.documentElement.style.setProperty('--theme-secondary', '#a86bf9');
+          break;
+        case 'green':
+          document.documentElement.style.setProperty('--theme-primary', '#5cb85c');
+          document.documentElement.style.setProperty('--theme-secondary', '#2ecc71');
+          break;
+        case 'purple':
+          document.documentElement.style.setProperty('--theme-primary', '#9b59b6');
+          document.documentElement.style.setProperty('--theme-secondary', '#8e44ad');
+          break;
+        case 'red':
+          document.documentElement.style.setProperty('--theme-primary', '#e74c3c');
+          document.documentElement.style.setProperty('--theme-secondary', '#c0392b');
+          break;
+        case 'blue':
+          document.documentElement.style.setProperty('--theme-primary', '#3498db');
+          document.documentElement.style.setProperty('--theme-secondary', '#2980b9');
+          break;
+      }
+      
+      localStorage.setItem('theme', theme);
+    }
+    
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', function() {
+      // Load theme preference
+      const savedDarkMode = localStorage.getItem('darkMode');
+      if (savedDarkMode !== null) {
+        isDarkMode = savedDarkMode === 'true';
+      } else {
+        isDarkMode = true; // Default to dark mode
+      }
+      document.body.classList.toggle('light-mode', !isDarkMode);
+      document.querySelector('#modeToggle i').className = isDarkMode ? 'fas fa-moon' : 'fas fa-sun';
+      
+      // Load theme
+      const savedTheme = localStorage.getItem('theme') || 'default';
+      setTheme(savedTheme);
+      
+      // Load search history
+      const savedHistory = localStorage.getItem('searchHistory');
+      if (savedHistory) {
+        searchHistory = JSON.parse(savedHistory);
+      }
+      
+      // Set up theme selector to not close when clicking inside
+      document.getElementById('themeSelector').addEventListener('click', function(e) {
+        e.stopPropagation();
+      });
+      
+      // Close theme selector when clicking elsewhere
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('.theme-selector') && !e.target.closest('#themeToggle')) {
+          document.getElementById('themeSelector').style.display = 'none';
+        }
+      });
+      
+      // Close modals when clicking outside
+      document.addEventListener('click', function(e) {
+        const historyModal = document.getElementById('historyModal');
+        const creditsModal = document.getElementById('creditsModal');
+        
+        if (e.target === historyModal) {
+          closeHistoryModal();
+        }
+        if (e.target === creditsModal) {
+          closeCreditsModal();
+        }
+      });
+    });
   </script>
 </body>
 </html>
